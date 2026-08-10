@@ -251,9 +251,15 @@ select.pick{width:100%;background:var(--panel);border:1px solid var(--line);bord
 .seg button[aria-pressed="true"]{background:var(--cyan);color:#03141C}
 .seg.small button{padding:6px 10px;font-size:9px}
 .dayeditor{display:flex;flex-direction:column;gap:8px}
-.dayrow{display:flex;align-items:center;gap:8px}
+.dayrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dayabbr{width:32px;font-size:10px;letter-spacing:.1em;color:var(--faint);flex:0 0 auto}
 .dayname{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:7px 8px;font-size:13px;color:var(--ink)}
+.dayrow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line-soft)}
+.dayrow2:first-child{border-top:0}
+.daytype{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:9px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;letter-spacing:.04em;color:var(--ink)}
+.daytype:focus{outline:0;border-color:var(--cyan)}
+.swapicon{flex:0 0 auto;width:34px;height:34px;padding:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.dayrow2 .dayname{flex:1 1 100%;margin-top:2px}
 .dayname:focus{outline:0;border-color:var(--cyan)}
 .warn{color:#F0B429;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
 .danger{border-color:rgba(255,90,78,.5)}
@@ -561,6 +567,42 @@ Object.values(DEFAULT).forEach(day=>{
   (day.ex||[]).concat(day.bonus||[]).forEach(x=>{if(x.type!=='cardio'){x.lo=8;x.hi=15;}});
 });
 const ORDER=['mon','tue','wed','thu','fri','sat','sun'];
+const TEMPLATES={
+  push:{ex:[
+    ex('Machine chest press',4,8,15),
+    ex('Incline machine press',3,8,15),
+    ex('Machine shoulder press',3,8,15),
+    ex('Lateral raise machine',3,8,15),
+    ex('Cable tricep pushdown',3,8,15),
+    ex('Overhead tricep extension',3,8,15),
+    cardio('Treadmill',18)
+  ],bonus:[]},
+  pull:{ex:[
+    ex('Lat pulldown (wide grip)',4,8,15),
+    ex('Seated cable row',4,8,15),
+    ex('Chest-supported machine row',3,8,15),
+    ex('Rear delt fly machine',3,8,15),
+    ex('Cable curl',3,8,15),
+    ex('Hammer curls',3,8,15),
+    cardio('Treadmill',18)
+  ],bonus:[]},
+  legs:{ex:[
+    ex('Leg press',3,8,15),
+    ex('Hack squat',3,8,15),
+    ex('Leg extension',3,8,15),
+    ex('Lying leg curl',3,8,15),
+    ex('Hip thrust machine',3,8,15),
+    ex('Standing calf raise',3,8,15)
+  ],bonus:[]}
+};
+function currentDayType(p){
+  if(p.kind==='rest')return'rest';
+  const l=(p.label||'').toLowerCase().trim();
+  if(l==='push')return'push';
+  if(l==='pull'||l.startsWith('pull'))return'pull';
+  if(l==='legs'||l.startsWith('leg'))return'legs';
+  return'custom';
+}
 const WD=['sun','mon','tue','wed','thu','fri','sat'];
 
 const DIRECTIVES=[
@@ -1815,6 +1857,42 @@ function shouldAddWeightByName(name){
   }
   return false;
 }
+function swapDayContent(k1,k2){
+  if(k1===k2)return;
+  const a=S.program[k1],b=S.program[k2];
+  const tmp={label:a.label,kind:a.kind,ex:a.ex,bonus:a.bonus};
+  a.label=b.label;a.kind=b.kind;a.ex=b.ex;a.bonus=b.bonus;
+  b.label=tmp.label;b.kind=tmp.kind;b.ex=tmp.ex;b.bonus=tmp.bonus;
+  ['draft','adhoc','collapsed','noteDraft'].forEach(key=>{
+    if(!S[key])S[key]={};
+    const t=S[key][k1];S[key][k1]=S[key][k2];S[key][k2]=t;
+  });
+  persist();
+}
+function openDaySwapSheet(sourceKey){
+  const src=S.program[sourceKey];
+  $('#sheettitle').textContent='Swap '+src.day+' with…';
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=ORDER.filter(k=>k!==sourceKey).map(k=>{
+    const p=S.program[k];
+    return `<button class="libitem" data-swapdayto="${k}">
+      <span><span class="nm">${esc(p.day)} — ${esc(p.label)}</span><span class="sub">${p.kind==='rest'?'currently rest':'training day'}</span></span>
+      <span class="plus">⇄</span>
+    </button>`;
+  }).join('');
+  $('#liblist').querySelectorAll('[data-swapdayto]').forEach(btn=>{
+    btn.onclick=()=>{
+      const targetKey=btn.dataset.swapdayto;
+      const targetDay=S.program[targetKey].day;
+      swapDayContent(sourceKey,targetKey);
+      closeLibrary();renderConfig();
+      toast(src.day+' and '+targetDay+' swapped');
+    };
+  });
+  $('#veil').hidden=false;
+}
 function openMoveSheet(exId){
   $('#sheettitle').textContent='Move to day';
   $('#libsearch').style.display='none';
@@ -1923,16 +2001,21 @@ function renderConfig(){
 
   <div class="cfg">
     <h3>Training program</h3>
-    <p>Switch any day between train and rest, or rename a day's label. Exercises on a day you switch to rest stay saved and come back if you switch it back.</p>
+    <p>Pick what each day is. Push, Pull, and Legs load a real template automatically. Swap trades two days completely.</p>
     <div class="dayeditor">${ORDER.map(k=>{
       const p=S.program[k];
-      return `<div class="dayrow">
+      const sel=currentDayType(p);
+      return `<div class="dayrow2">
         <span class="dayabbr mono">${p.day}</span>
-        <input class="dayname" data-daylabel="${k}" value="${esc(p.label)}" placeholder="Label">
-        <div class="seg small">
-          <button data-daykind="${k}" data-val="train" aria-pressed="${p.kind==='train'}">Train</button>
-          <button data-daykind="${k}" data-val="rest" aria-pressed="${p.kind==='rest'}">Rest</button>
-        </div>
+        <select class="daytype" data-daytype="${k}">
+          <option value="push"${sel==='push'?' selected':''}>Push</option>
+          <option value="pull"${sel==='pull'?' selected':''}>Pull</option>
+          <option value="legs"${sel==='legs'?' selected':''}>Legs</option>
+          <option value="rest"${sel==='rest'?' selected':''}>Rest</option>
+          <option value="custom"${sel==='custom'?' selected':''}>Custom…</option>
+        </select>
+        <button class="mini swapicon" data-swapday="${k}" aria-label="Swap ${p.day} with another day">⇄</button>
+        ${sel==='custom'?`<input class="dayname" data-daylabel="${k}" value="${esc(p.label)}" placeholder="Label">`:''}
       </div>`;
     }).join('')}</div>
   </div>
@@ -2032,16 +2115,42 @@ function renderConfig(){
       persist();renderConfig();
     });
   });
-  $('#view').querySelectorAll('[data-daykind]').forEach(b=>{
-    b.onclick=()=>{
-      const k=b.dataset.daykind,val=b.dataset.val;
+  $('#view').querySelectorAll('[data-swapday]').forEach(b=>b.onclick=()=>openDaySwapSheet(b.dataset.swapday));
+  $('#view').querySelectorAll('[data-daytype]').forEach(sel=>{
+    sel.addEventListener('change',e=>{
+      const k=e.target.dataset.daytype,val=e.target.value;
       const p=S.program[k];
-      if(val==='train'){p.kind='train';if(!p.ex)p.ex=[];if(!p.bonus)p.bonus=[];}
-      else{p.kind='rest';}
       if(k===dayKey)forceEdit=false;
+      if(val==='rest'){
+        p.kind='rest';
+        persist();renderConfig();
+        toast(p.day+' set to rest');
+        return;
+      }
+      if(val==='custom'){
+        p.kind='train';
+        if(!p.ex)p.ex=[];
+        if(!p.bonus)p.bonus=[];
+        persist();renderConfig();
+        return;
+      }
+      const tpl=TEMPLATES[val];
+      if(!tpl)return;
+      const hadContent=(p.ex&&p.ex.length)||(p.bonus&&p.bonus.length);
+      const prev={kind:p.kind,ex:p.ex,bonus:p.bonus,label:p.label};
+      p.kind='train';
+      p.label=val.charAt(0).toUpperCase()+val.slice(1);
+      p.ex=tpl.ex.map(x=>({...x,id:uid()}));
+      p.bonus=(tpl.bonus||[]).map(x=>({...x,id:uid()}));
       persist();renderConfig();
-      toast(p.day+' set to '+(val==='train'?'training':'rest'));
-    };
+      if(hadContent){
+        toastUndo('Loaded '+val+' template on '+p.day,()=>{
+          p.kind=prev.kind;p.ex=prev.ex;p.bonus=prev.bonus;p.label=prev.label;persist();renderConfig();
+        });
+      }else{
+        toast('Loaded '+val+' template on '+p.day);
+      }
+    });
   });
   $('#savename').onclick=()=>{
     const v=$('#refname').value.trim();
