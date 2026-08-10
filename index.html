@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="REFINE">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#04161F">
+<title>Refinement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#04161F;
+  --panel:#0A2634;
+  --panel2:#0E3243;
+  --line:#164A5F;
+  --line-soft:#12384A;
+  --ink:#DCF4F8;
+  --dim:#79ABBB;
+  --faint:#4A7A8C;
+  --cyan:#5AD9E8;
+  --green:#3FE0A5;
+  --red:#FF5A4E;
+  --r:4px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--void);color:var(--ink);
+  font-family:'Archivo',system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;
+  background-image:linear-gradient(rgba(90,217,232,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(90,217,232,.035) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+  background:repeating-linear-gradient(rgba(4,22,31,0) 0 2px,rgba(4,22,31,.22) 2px 3px);
+  mix-blend-mode:multiply;
+}
+input,button,select{font-family:inherit;color:inherit}
+.mono{font-family:'IBM Plex Mono',ui-monospace,monospace}
+.wrap{max-width:640px;margin:0 auto;padding:0 12px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--faint)}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:20;background:linear-gradient(var(--void) 84%,rgba(4,22,31,0));padding-top:calc(8px + env(safe-area-inset-top))}
+.crest{display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid var(--line-soft);padding:0 2px 7px}
+.crest h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.42em;text-transform:uppercase}
+.crest .code{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--faint);text-align:right;white-space:nowrap}
+
+/* bins */
+.bins{display:flex;gap:5px;padding:11px 2px 6px}
+.bin{flex:1;height:34px;border:1px solid var(--line);border-radius:2px;position:relative;overflow:hidden;background:var(--panel)}
+.bin i{position:absolute;left:0;bottom:0;width:100%;height:0%;background:linear-gradient(var(--cyan),#2A9DB0);transition:height .45s cubic-bezier(.2,.7,.3,1);opacity:.85}
+.bin.full i{background:linear-gradient(var(--green),#1F9E73)}
+.bin span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--ink);text-shadow:0 0 4px rgba(4,22,31,.9)}
+.readout{display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 9px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase}
+.readout b{color:var(--cyan);font-weight:600}
+.readout .pct{font-size:19px;color:var(--ink);letter-spacing:.06em}
+
+.days{display:flex;gap:5px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:2px;padding:6px 11px;cursor:pointer;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.day b{display:block;font-size:9px;letter-spacing:.2em;color:var(--faint);font-weight:500}
+.day[aria-selected="true"]{background:var(--cyan);border-color:var(--cyan);color:#03141C}
+.day[aria-selected="true"] b{color:rgba(3,20,28,.65)}
+.day.now{box-shadow:inset 0 -2px 0 var(--green)}
+.day.rest{color:var(--faint)}
+
+main{padding-bottom:16px}
+
+/* ---------- exercise card ---------- */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;padding:11px 12px 12px;transition:border-color .3s,background .3s}
+.card.complete{border-color:var(--green);background:linear-gradient(rgba(63,224,165,.09),rgba(63,224,165,.03)),var(--panel)}
+.card.bonus{border-style:dashed;border-color:var(--line-soft)}
+.exhead{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.exname{font-size:15px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:1.2;margin:0;background:none;border:0;padding:0;width:100%}
+.exname:focus{outline:1px solid var(--cyan);outline-offset:3px}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--faint);margin-top:3px;text-transform:uppercase}
+.kebab{background:none;border:0;color:var(--faint);font-size:17px;line-height:1;padding:0 2px;cursor:pointer}
+.tag{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:3px 6px;border-radius:2px;white-space:nowrap}
+.tag.up{background:var(--cyan);color:#03141C}
+.tag.done{background:var(--green);color:#03211A}
+
+/* dots */
+.dots{display:flex;gap:7px;margin:10px 0 2px;flex-wrap:wrap}
+.dot{
+  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);
+  display:flex;align-items:center;justify-content:center;transition:.2s;padding:0;
+}
+.dot[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#03211A;font-weight:600}
+.dot:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+.setrow{display:grid;grid-template-columns:22px 1fr 1fr 72px;gap:7px;align-items:center;margin-top:7px}
+.setno{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);text-align:center}
+.setrow.on .setno{color:var(--green)}
+.field{position:relative}
+.field input{width:100%;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:8px 8px 8px 9px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500}
+.field input:focus{outline:0;border-color:var(--cyan)}
+.field input::placeholder{color:#3D6A7C}
+.field label{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
+.field .u{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:rgba(90,217,232,.1);border:1px solid var(--line-soft);border-radius:2px;padding:3px 5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;line-height:1}
+.field .u:active{background:var(--cyan);color:#03141C}
+.unitnote{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;margin-top:6px}
+.last{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);text-align:right;letter-spacing:.04em}
+.last b{color:var(--dim);font-weight:600}
+.rowtools{display:flex;gap:7px;margin-top:9px}
+.mini{background:none;border:1px solid var(--line-soft);border-radius:2px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:5px 8px;cursor:pointer}
+.mini:hover{border-color:var(--cyan);color:var(--ink)}
+
+.blockhead{display:flex;align-items:center;gap:9px;margin:20px 0 9px}
+.blockhead .t{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint);white-space:nowrap}
+.blockhead .r{flex:1;height:1px;background:var(--line-soft)}
+
+/* ---------- rest day ---------- */
+.restday{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:20px 16px;margin-top:4px}
+.restday h2{margin:6px 0 4px;font-size:19px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.restday p.sub{color:var(--dim);font-size:14px;margin:0 0 16px}
+.directive{display:flex;gap:11px;padding:11px 0;border-top:1px solid var(--line-soft)}
+.directive .n{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--cyan);letter-spacing:.1em;padding-top:2px}
+.directive .t{font-size:14px;font-weight:600;letter-spacing:.03em}
+.directive .d{color:var(--dim);font-size:13px;margin-top:1px}
+.nextup{margin-top:16px;border-top:1px solid var(--line-soft);padding-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint)}
+.nextup b{color:var(--cyan);font-weight:600}
+
+/* ---------- completion ---------- */
+.done-screen{text-align:center;padding:34px 14px 20px;border:1px solid var(--green);border-radius:var(--r);background:linear-gradient(rgba(63,224,165,.08),rgba(63,224,165,.02)),var(--panel);margin-top:4px}
+.done-screen h2{margin:12px 0 6px;font-size:22px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--green)}
+.done-screen p{color:var(--dim);font-size:14px;margin:0 auto;max-width:34ch}
+.donestats{display:flex;justify-content:center;gap:26px;margin:22px 0 18px}
+.donestat .n{font-family:'IBM Plex Mono',monospace;font-size:23px;font-weight:600;color:var(--ink)}
+.donestat .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.creed{border-top:1px solid rgba(63,224,165,.3);border-bottom:1px solid rgba(63,224,165,.3);padding:15px 8px;margin:0 0 16px;font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.9;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+
+/* ---------- footer stack ---------- */
+.footstack{position:fixed;left:0;right:0;bottom:0;z-index:30}
+.restbar{background:var(--cyan);color:#03141C;padding:8px 13px;display:flex;align-items:center;gap:11px}
+.restbar.urgent{background:var(--red);color:#1B0300}
+.restbar[hidden]{display:none}
+.restbar .lab{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:10px;letter-spacing:.22em;text-transform:uppercase;white-space:nowrap}
+.resttrack{flex:1;height:4px;background:rgba(3,20,28,.25);border-radius:2px;overflow:hidden}
+.resttrack i{display:block;height:100%;background:currentColor;width:100%;transition:width 1s linear}
+.resttime{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:17px;white-space:nowrap;min-width:52px;text-align:right}
+.restskip{background:rgba(3,20,28,.16);border:0;border-radius:2px;padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;cursor:pointer}
+.dock{background:rgba(4,22,31,.96);backdrop-filter:blur(9px);border-top:1px solid var(--line);padding:9px 12px}
+.dock[hidden]{display:none}
+.dockin{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:11px}
+.vol{flex:1;min-width:0}
+.vol .n{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;line-height:1.1}
+.vol .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.save{background:var(--cyan);color:#03141C;border:0;border-radius:2px;padding:10px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
+.save:disabled{background:var(--panel2);color:#3D6A7C}
+.tabs{display:flex;background:var(--panel);border-top:1px solid var(--line);padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
+.tabs button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;cursor:pointer;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+.tabs button .ic{font-size:13px;line-height:1}
+.tabs button[aria-selected="true"]{color:var(--cyan)}
+
+/* ---------- history / progress ---------- */
+.sess{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:11px;margin-bottom:9px}
+.sesshead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sessday{font-size:14px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.sessmeta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.1em}
+.sesslist{margin:8px 0 0;padding:0;list-style:none;font-size:13px;color:var(--dim)}
+.sesslist li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-top:1px solid var(--line-soft)}
+.sesslist span{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink);text-align:right;white-space:nowrap}
+select.pick{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:10px;font-size:14px;letter-spacing:.06em;margin-bottom:11px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px}
+.stat .n{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;line-height:1.2}
+.stat .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 9px 5px;margin-bottom:11px}
+.empty{color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;padding:26px 6px;text-align:center;line-height:1.9;text-transform:uppercase}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:170px;z-index:50;background:var(--cyan);color:#03141C;padding:8px 15px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .2s,bottom .2s}
+/* modal */
+.veil{position:fixed;inset:0;z-index:60;background:rgba(2,11,16,.86);display:flex;align-items:flex-end;justify-content:center}
+.veil[hidden]{display:none}
+.sheet{width:100%;max-width:640px;max-height:86vh;display:flex;flex-direction:column;background:var(--void);border:1px solid var(--line);border-bottom:0;border-radius:6px 6px 0 0;padding:14px 12px calc(12px + env(safe-area-inset-bottom))}
+.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sheethead h3{margin:0;font-size:14px;letter-spacing:.2em;text-transform:uppercase;font-weight:700}
+.srch{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:14px;margin-bottom:9px}
+.srch:focus{outline:0;border-color:var(--cyan)}
+.chips{display:flex;gap:5px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;background:var(--panel);border:1px solid var(--line-soft);border-radius:2px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;padding:6px 9px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:#03141C}
+.libscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
+.libitem{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line-soft);border-radius:2px;padding:10px;margin-bottom:5px;cursor:pointer}
+.libitem .nm{font-size:14px;font-weight:600;letter-spacing:.04em}
+.libitem .sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:2px}
+.libitem .plus{font-family:'IBM Plex Mono',monospace;color:var(--cyan);font-size:15px}
+/* config */
+.cfg{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:12px;margin-bottom:9px}
+.cfg h3{margin:0 0 3px;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:700}
+.cfg p{margin:0 0 10px;font-size:12px;color:var(--dim);line-height:1.5}
+.cfgrow{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.cfgrow input[type=number],.cfgrow input[type=date]{flex:1;min-width:90px;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:9px;font-family:'IBM Plex Mono',monospace;font-size:15px}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{background:var(--panel2);border:0;padding:8px 13px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--cyan);color:#03141C}
+.warn{color:#F0B429;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.danger{border-color:rgba(255,90,78,.5)}
+.danger h3{color:var(--red)}
+.btn-danger{background:var(--red);border:0;border-radius:2px;color:#1B0300;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:10px 14px;cursor:pointer;width:100%}
+.bwlist{margin:9px 0 0;padding:0;list-style:none}
+.bwlist li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid var(--line-soft);font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim)}
+.bwlist li b{color:var(--ink);font-weight:600}
+.toast.show{opacity:1;bottom:182px}
+.foot{display:flex;gap:7px;flex-wrap:wrap;margin:16px 0 6px}
+.datefile{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.datefile input{background:var(--panel);border:1px solid var(--line-soft);border-radius:2px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:11px;padding:5px 7px}
+h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--faint);margin:18px 0 8px;font-weight:500}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}body::after{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="crest">
+      <h1>Refinement</h1>
+      <div class="code">DEPT / MDR-4<br>CLUB 195</div>
+    </div>
+    <div class="bins" id="bins"></div>
+    <div class="readout">
+      <div><span id="rdlabel">Sets refined</span> <b id="rdcount">0 / 0</b></div>
+      <div class="pct mono" id="rdpct">0%</div>
+    </div>
+    <div class="days" id="days"></div>
+  </div>
+</header>
+
+<main class="wrap"><div id="view"></div></main>
+
+<div class="footstack" id="footstack">
+  <div class="restbar" id="restbar" hidden>
+    <div class="lab">Rest interval</div>
+    <div class="resttrack"><i id="restfill"></i></div>
+    <div class="resttime" id="resttime">1:30</div>
+    <button class="restskip" id="restskip">Skip</button>
+  </div>
+  <div class="dock" id="dock">
+    <div class="dockin">
+      <div class="vol">
+        <div class="n" id="volnum">0 lb</div>
+        <div class="l" id="vollabel">Tonnage</div>
+      </div>
+      <button class="save" id="save">File workout</button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button id="t-log" aria-selected="true"><span class="ic">▣</span><span>Today</span></button>
+    <button id="t-hist" aria-selected="false"><span class="ic">▤</span><span>Archive</span></button>
+    <button id="t-prog" aria-selected="false"><span class="ic">▥</span><span>Trends</span></button>
+    <button id="t-cfg" aria-selected="false"><span class="ic">⚙</span><span>Config</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+<input type="file" id="importfile" accept="application/json,.json" hidden>
+<div class="veil" id="veil" hidden>
+  <div class="sheet">
+    <div class="sheethead">
+      <h3 id="sheettitle">Exercise library</h3>
+      <button class="mini" id="sheetclose">Close</button>
+    </div>
+    <input class="srch" id="libsearch" placeholder="Search 62 exercises…" autocomplete="off">
+    <div class="chips" id="libchips"></div>
+    <div class="libscroll" id="liblist"></div>
+    <div class="rowtools"><button class="mini" id="libcustom">+ Custom exercise</button></div>
+  </div>
+</div>
+
+<script>
+/* ===================== storage ===================== */
+const KEY='refinement:v1';
+let mem=null;
+async function load(){try{const r=await window.storage.get(KEY);return r?JSON.parse(r.value):null;}catch(e){return mem;}}
+async function persist(){mem=S;try{await window.storage.set(KEY,JSON.stringify(S));}catch(e){}}
+
+/* ===================== program ===================== */
+const uid=()=>Math.random().toString(36).slice(2,9);
+const ex=(name,sets,lo,hi,unit)=>({id:uid(),name,sets,lo,hi,type:'lift',unit:unit||'lb'});
+const cardio=(name,min)=>({id:uid(),name,sets:1,lo:min,hi:min,type:'cardio'});
+
+const DEFAULT={
+  mon:{day:'Mon',label:'Push',kind:'train',ex:[
+    ex('Machine chest press',4,8,10),
+    ex('Incline machine press',3,10,12),
+    ex('Machine shoulder press',3,10,12),
+    ex('Lateral raise machine',3,12,15),
+    ex('Cable tricep pushdown',3,10,12),
+    ex('Overhead tricep extension',3,12,15),
+    cardio('Treadmill',18)],
+   bonus:[ex('Cable chest fly',2,12,15),ex('Cable lateral raise',2,15,20)]},
+  tue:{day:'Tue',label:'Pull + Abs',kind:'train',ex:[
+    ex('Lat pulldown (wide grip)',4,8,10),
+    ex('Seated cable row',4,8,10),
+    ex('Chest-supported machine row',3,10,12),
+    ex('Rear delt fly machine',3,12,15),
+    ex('Cable curl',3,10,12),
+    ex('Hammer curls',3,10,12),
+    ex('Machine crunch',2,15,15),
+    ex('Hanging knee raise',2,12,15),
+    cardio('Treadmill',18)],
+   bonus:[ex('Straight-arm pulldown',2,12,15),ex('Cable face pull',2,15,20)]},
+  wed:{day:'Wed',label:'Rest',kind:'rest'},
+  thu:{day:'Thu',label:'Push',kind:'train',ex:[
+    ex('Pec deck',4,12,15),
+    ex('Machine chest press',3,8,10),
+    ex('Machine shoulder press',3,10,12),
+    ex('Lateral raise machine',3,12,15),
+    ex('Reverse pec deck fly',3,12,15),
+    ex('Assisted dips',2,6,12),
+    ex('Overhead tricep extension',3,12,15),
+    cardio('Treadmill',18)],
+   bonus:[ex('Cable tricep kickback',2,12,15),ex('Machine chest fly burnout',1,15,20)]},
+  fri:{day:'Fri',label:'Pull + Abs',kind:'train',ex:[
+    ex('Narrow grip pulldown',4,8,10),
+    ex('Chest-supported machine row',3,10,12),
+    ex('Rear delt fly machine',3,12,15),
+    ex('Cable curl',3,10,12),
+    ex('Hammer curls',3,10,12),
+    ex('Machine preacher curl',2,12,15),
+    ex('Machine crunch',3,15,15),
+    ex('Hanging knee raise',3,12,15),
+    cardio('Treadmill',18)],
+   bonus:[ex('Reverse grip curl',2,12,15),ex('Cable shrug',2,12,15)]},
+  sat:{day:'Sat',label:'Rest',kind:'rest'},
+  sun:{day:'Sun',label:'Rest',kind:'rest'}
+};
+const ORDER=['mon','tue','wed','thu','fri','sat','sun'];
+const WD=['sun','mon','tue','wed','thu','fri','sat'];
+
+const DIRECTIVES=[
+  {t:'Walk 20 to 30 minutes',d:'Easy pace. Blood flow into the muscle you trained, no added fatigue.'},
+  {t:'Hit protein anyway',d:'Around 140 g. Rest days are when the tissue actually gets built, not training days.'},
+  {t:'Sleep 7 to 9 hours',d:'The single largest lever on recovery. Nothing in the gym replaces it.'},
+  {t:'Stretch what is tight',d:'Five to ten minutes on pecs, lats, and hip flexors. Hold each 30 seconds.'},
+  {t:'Water and salt',d:'Aim for pale yellow urine. Under-hydration reads as weakness on the next session.'},
+  {t:'Leave the weights alone',d:'Extra volume on a rest day is borrowed from the next workout, not added to this one.'}
+];
+
+let S={program:DEFAULT,sessions:[],draft:{}};
+let dayKey=WD[new Date().getDay()];
+let tab='log';
+let forceEdit=false;
+
+/* ===================== helpers ===================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[<>&"]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]));
+const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
+const fmt=n=>n.toLocaleString('en-US',{maximumFractionDigits:0});
+const e1rm=(w,r)=>w*(1+r/30);
+const dstr=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+function plan(){return S.program[dayKey];}
+function mainEx(){return plan().ex||[];}
+function bonusEx(){return plan().bonus||[];}
+function allEx(){return mainEx().concat(bonusEx());}
+function isRest(){return plan().kind==='rest';}
+
+/* --- units: everything normalizes to lb internally --- */
+const LB_PER_KG=2.2046226218;
+const toLb=(w,u)=>u==='kg'?w*LB_PER_KG:w;
+const fromLb=(w,u)=>u==='kg'?w/LB_PER_KG:w;
+function conv(w,from,to){
+  if(from===to)return w;
+  const v=fromLb(toLb(w,from),to);
+  return Math.round(v*2)/2;
+}
+function unitOf(x){return x.unit||'lb';}
+function loadStep(x){
+  const heavy=x.lo<=10;
+  return unitOf(x)==='kg'?(heavy?2.5:1):(heavy?5:2.5);
+}
+function tidy(n){return Number.isInteger(n)?String(n):String(Math.round(n*10)/10);}
+
+function lastFor(name){
+  for(let i=S.sessions.length-1;i>=0;i--){
+    const hit=S.sessions[i].ex.find(x=>x.name.toLowerCase()===name.toLowerCase()&&x.sets.length);
+    if(hit)return{sets:hit.sets,date:S.sessions[i].date,unit:hit.unit||'lb'};
+  }
+  return null;
+}
+// last session's numbers expressed in the unit the exercise is set to now
+function lastIn(x){
+  const l=lastFor(x.name);
+  if(!l)return null;
+  return{date:l.date,sets:l.sets.map(s=>({w:conv(s.w,l.unit,unitOf(x)),r:s.r}))};
+}
+function bestFor(name){
+  let best=0,bw=0,br=0;
+  S.sessions.forEach(s=>s.ex.filter(x=>x.name.toLowerCase()===name.toLowerCase()).forEach(x=>x.sets.forEach(t=>{
+    if(!t.w||!t.r)return;const lb=toLb(t.w,x.unit||'lb');const v=e1rm(lb,t.r);
+    if(v>best){best=v;bw=lb;br=t.r;}
+  })));
+  return best?{e:best,w:bw,r:br}:null;
+}
+function shouldAddWeight(x){
+  const l=lastFor(x.name);
+  if(!l||x.type==='cardio')return false;
+  const d=l.sets.filter(s=>s.w&&s.r);
+  if(d.length<x.sets)return false;
+  return d.every(s=>s.r>=x.hi);
+}
+// what to load next set, in the exercise's current unit
+function targetWeight(x,i){
+  const l=lastIn(x);
+  if(!l)return null;
+  const lp=l.sets[i]||l.sets[l.sets.length-1];
+  if(!lp||!lp.w)return null;
+  return shouldAddWeight(x)?lp.w+loadStep(x):lp.w;
+}
+
+/* ===================== draft ===================== */
+function getDraft(){if(!S.draft[dayKey])S.draft[dayKey]={};return S.draft[dayKey];}
+function rowOf(exId,i){
+  const d=getDraft();
+  if(!d[exId])d[exId]=[];
+  if(!d[exId][i])d[exId][i]={w:'',r:'',on:false};
+  return d[exId][i];
+}
+function setVal(exId,i,f,v){rowOf(exId,i)[f]=v;persist();}
+function toggleSet(x,i){
+  const row=rowOf(x.id,i);
+  if(row.on){row.on=false;persist();return false;}
+  if(!row.w||!row.r){
+    const l=lastIn(x);
+    const lp=l&&l.sets[i]?l.sets[i]:(l?l.sets[l.sets.length-1]:null);
+    if(x.type==='cardio'){if(!row.r)row.r=String(lp?lp.r:x.lo);}
+    else{
+      const tw=targetWeight(x,i);
+      if(!row.w)row.w=tw?tidy(tw):'';
+      if(!row.r)row.r=String(shouldAddWeight(x)?x.lo:(lp&&lp.r?lp.r:x.lo));
+    }
+  }
+  row.on=true;persist();return true;
+}
+function doneCount(x){const d=getDraft();return (d[x.id]||[]).filter((r,i)=>i<x.sets&&r&&r.on).length;}
+function exComplete(x){return doneCount(x)>=x.sets;}
+function volume(){ // returns lb
+  const d=getDraft();let v=0;
+  allEx().forEach(x=>{if(x.type==='cardio')return;(d[x.id]||[]).forEach(r=>{if(r&&r.on)v+=toLb(num(r.w),unitOf(x))*num(r.r);});});
+  return v;
+}
+function todayISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
+function fileDate(){return S.fileDate||todayISO();}
+function disp(){return S.disp||'lb';}
+function showVol(lb){return fmt(fromLb(lb,disp()))+' '+disp();}
+function counts(){
+  let done=0,total=0;
+  mainEx().forEach(x=>{total+=x.sets;done+=doneCount(x);});
+  return{done,total};
+}
+
+/* ===================== exercise library ===================== */
+// [name, group, equipment, restSec, lo, hi]
+const LIBRARY=[
+['Machine chest press','Chest','Machine',90,8,10],
+['Incline machine press','Chest','Machine',90,10,12],
+['Pec deck','Chest','Machine',75,12,15],
+['Cable chest fly','Chest','Cable',60,12,15],
+['Low-to-high cable fly','Chest','Cable',60,12,15],
+['Smith machine bench press','Chest','Smith',120,6,10],
+['Dumbbell bench press','Chest','Dumbbell',120,8,12],
+['Incline dumbbell press','Chest','Dumbbell',120,8,12],
+['Push-up','Chest','Bodyweight',60,10,20],
+['Lat pulldown (wide grip)','Back','Cable',90,8,10],
+['Narrow grip pulldown','Back','Cable',90,8,10],
+['Reverse grip pulldown','Back','Cable',90,8,12],
+['Seated cable row','Back','Cable',90,8,10],
+['Chest-supported machine row','Back','Machine',90,10,12],
+['Machine high row','Back','Machine',90,10,12],
+['Single-arm cable row','Back','Cable',75,10,12],
+['Straight-arm pulldown','Back','Cable',60,12,15],
+['Assisted pull-up','Back','Bodyweight',120,6,12],
+['Dumbbell row','Back','Dumbbell',90,8,12],
+['Machine shoulder press','Shoulders','Machine',90,10,12],
+['Smith shoulder press','Shoulders','Smith',120,8,10],
+['Lateral raise machine','Shoulders','Machine',60,12,15],
+['Cable lateral raise','Shoulders','Cable',60,15,20],
+['Dumbbell lateral raise','Shoulders','Dumbbell',60,12,15],
+['Rear delt fly machine','Shoulders','Machine',60,12,15],
+['Reverse pec deck fly','Shoulders','Machine',60,12,15],
+['Cable face pull','Shoulders','Cable',60,15,20],
+['Dumbbell front raise','Shoulders','Dumbbell',60,12,15],
+['Cable tricep pushdown','Triceps','Cable',60,10,12],
+['Rope pushdown','Triceps','Cable',60,12,15],
+['Overhead tricep extension','Triceps','Cable',60,12,15],
+['Machine tricep extension','Triceps','Machine',60,10,12],
+['Cable tricep kickback','Triceps','Cable',45,12,15],
+['Assisted dips','Triceps','Bodyweight',120,6,12],
+['Skull crusher','Triceps','Dumbbell',75,10,12],
+['Cable curl','Biceps','Cable',60,10,12],
+['Hammer curls','Biceps','Dumbbell',60,10,12],
+['Machine preacher curl','Biceps','Machine',60,12,15],
+['Incline dumbbell curl','Biceps','Dumbbell',75,10,12],
+['Reverse grip curl','Biceps','Cable',60,12,15],
+['Concentration curl','Biceps','Dumbbell',60,12,15],
+['Cable shrug','Traps','Cable',60,12,15],
+['Dumbbell shrug','Traps','Dumbbell',60,12,15],
+['Machine crunch','Core','Machine',45,15,20],
+['Hanging knee raise','Core','Bodyweight',45,12,15],
+['Cable crunch','Core','Cable',45,12,15],
+['Plank (seconds)','Core','Bodyweight',45,30,60],
+['Ab wheel','Core','Other',60,8,12],
+['Leg press','Quads','Machine',150,10,12],
+['Hack squat','Quads','Machine',150,8,12],
+['Leg extension','Quads','Machine',75,12,15],
+['Bulgarian split squat','Quads','Dumbbell',120,8,12],
+['Goblet squat','Quads','Dumbbell',120,10,12],
+['Lying leg curl','Hamstrings','Machine',75,10,12],
+['Seated leg curl','Hamstrings','Machine',75,10,12],
+['Romanian deadlift','Hamstrings','Barbell',150,8,10],
+['Hip thrust machine','Glutes','Machine',120,10,12],
+['Cable kickback','Glutes','Cable',60,12,15],
+['Hip abductor','Glutes','Machine',60,15,20],
+['Hip adductor','Glutes','Machine',60,15,20],
+['Standing calf raise','Calves','Machine',60,12,15],
+['Seated calf raise','Calves','Machine',60,15,20]
+];
+const GROUPS=[...new Set(LIBRARY.map(r=>r[1]))];
+function defRest(x){return x.rest||(x.lo<=10?90:60);}
+const REST_STEPS=[45,60,75,90,120,150,180];
+
+
+/* ===================== rest timer ===================== */
+let rest={on:false,left:0,total:0,t:null};
+function startRest(sec){
+  clearInterval(rest.t);
+  rest.on=true;rest.total=sec;rest.left=sec;paintRest();
+  rest.t=setInterval(()=>{
+    rest.left--;
+    if(rest.left<=0){clearInterval(rest.t);rest.on=false;paintRest();toast('Interval complete');buzz();return;}
+    paintRest();
+  },1000);
+}
+function skipRest(){clearInterval(rest.t);rest.on=false;paintRest();}
+function buzz(){try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}
+function paintRest(){
+  const b=$('#restbar');b.hidden=!rest.on;
+  if(!rest.on){b.classList.remove('urgent');fitPad();return;}
+  const m=Math.floor(rest.left/60),s=rest.left%60;
+  $('#resttime').textContent=m+':'+String(s).padStart(2,'0');
+  $('#restfill').style.width=(rest.left/rest.total*100)+'%';
+  b.classList.toggle('urgent',rest.left<=10);
+  fitPad();
+}
+$('#restskip').onclick=skipRest;
+
+/* ===================== header ===================== */
+function paintDays(){
+  const box=$('#days');box.innerHTML='';
+  const nowKey=WD[new Date().getDay()];
+  ORDER.forEach(k=>{
+    const p=S.program[k];
+    const b=document.createElement('button');
+    b.className='day'+(k===nowKey?' now':'')+(p.kind==='rest'?' rest':'');
+    b.setAttribute('aria-selected',k===dayKey);
+    b.innerHTML='<b>'+p.day+'</b>'+esc(p.label);
+    b.onclick=()=>{dayKey=k;forceEdit=false;render();};
+    box.appendChild(b);
+  });
+}
+function paintBins(){
+  const {done,total}=counts();
+  const box=$('#bins');
+  if(isRest()){
+    box.innerHTML='';
+    $('#rdlabel').textContent='Status';
+    $('#rdcount').textContent='RECOVERY';
+    $('#rdpct').textContent='—';
+    return;
+  }
+  const per=total/5;
+  let h='';
+  for(let i=0;i<5;i++){
+    const f=Math.max(0,Math.min(1,(done-i*per)/per));
+    h+=`<div class="bin${f>=1?' full':''}"><i style="height:${f*100}%"></i><span>0${i+1}</span></div>`;
+  }
+  box.innerHTML=h;
+  $('#rdlabel').textContent='Sets refined';
+  $('#rdcount').textContent=done+' / '+total;
+  $('#rdpct').textContent=(total?Math.round(done/total*100):0)+'%';
+}
+
+/* ===================== rest day view ===================== */
+function nextTrainingDay(){
+  const i=ORDER.indexOf(dayKey);
+  for(let n=1;n<=7;n++){const k=ORDER[(i+n)%7];if(S.program[k].kind==='train')return S.program[k];}
+  return null;
+}
+function renderRestDay(){
+  const nx=nextTrainingDay();
+  const three=[...DIRECTIVES].sort(()=>Math.random()-.5).slice(0,4)
+    .map((d,i)=>`<div class="directive"><div class="n">0${i+1}</div><div><div class="t">${esc(d.t)}</div><div class="d">${esc(d.d)}</div></div></div>`).join('');
+  $('#view').innerHTML=`<div class="restday">
+    <div class="eyebrow">No refinement scheduled</div>
+    <h2>Recovery</h2>
+    <p class="sub">${esc(plan().day)} is off. Growth happens now, not on the machines. Directives below.</p>
+    ${three}
+    <div class="nextup">Next session · <b>${nx?esc(nx.day+' — '+nx.label):'—'}</b></div>
+  </div>`;
+}
+
+/* ===================== log view ===================== */
+function exCard(x,isBonus){
+  const d=getDraft();
+  const rows=d[x.id]||[];
+  const last=x.type==='cardio'?lastFor(x.name):lastIn(x);
+  const U=unitOf(x);
+  const up=shouldAddWeight(x);
+  const complete=exComplete(x);
+  let dots='';
+  for(let i=0;i<x.sets;i++){
+    const on=!!(rows[i]&&rows[i].on);
+    dots+=`<button class="dot" aria-pressed="${on}" data-tog="${x.id}" data-i="${i}" aria-label="Set ${i+1}">${on?'✓':i+1}</button>`;
+  }
+  let sets='';
+  for(let i=0;i<x.sets;i++){
+    const cur=rows[i]||{w:'',r:'',on:false};
+    const lp=last&&last.sets[i]?last.sets[i]:null;
+    if(x.type==='cardio'){
+      sets+=`<div class="setrow${cur.on?' on':''}">
+        <div class="setno">—</div>
+        <div class="field"><input inputmode="decimal" placeholder="${x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>min</label></div>
+        <div class="field"><input inputmode="decimal" placeholder="3.0" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w"><label>mph</label></div>
+        <div class="last">${lp?`<b>${esc(String(lp.r))}</b>m`:'—'}</div>
+      </div>`;
+    }else{
+      const tw=targetWeight(x,i);
+      sets+=`<div class="setrow${cur.on?' on':''}">
+        <div class="setno">${i+1}</div>
+        <div class="field"><input inputmode="decimal" placeholder="${tw?tidy(tw):'0'}" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w"><button class="u" data-unit="${x.id}" aria-label="Switch units">${U}</button></div>
+        <div class="field"><input inputmode="numeric" placeholder="${lp&&lp.r?lp.r:x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>reps</label></div>
+        <div class="last">${lp&&lp.w?`<b>${tidy(lp.w)}</b>×${lp.r}`:'NEW'}</div>
+      </div>`;
+    }
+  }
+  return `<div class="card${complete?' complete':''}${isBonus?' bonus':''}" data-card="${x.id}">
+    <div class="exhead">
+      <div style="flex:1;min-width:0">
+        <input class="exname" value="${esc(x.name)}" data-rename="${x.id}" aria-label="Exercise name">
+        <div class="meta">${x.type==='cardio'?x.lo+' min steady':x.sets+' × '+x.lo+(x.hi>x.lo?'–'+x.hi:'')+' reps'}${last?' · last '+esc(last.date.slice(5)):''}</div>
+      </div>
+      ${complete?'<span class="tag done">Refined</span>':(up?`<span class="tag up">Load +${tidy(loadStep(x))}</span>`:'')}
+      <button class="kebab" data-trend="${esc(x.name)}" aria-label="View trend">↗</button>
+      <button class="kebab" data-del="${x.id}" aria-label="Remove">×</button>
+    </div>
+    <div class="dots">${dots}</div>
+    ${sets}
+    ${x.type==='cardio'?'':`<div class="rowtools"><button class="mini" data-addset="${x.id}">+ set</button><button class="mini" data-rmset="${x.id}">− set</button><button class="mini" data-unit="${x.id}">${U==='lb'?'→ kg':'→ lb'}</button><button class="mini" data-rest="${x.id}">rest ${defRest(x)}s</button></div>`}
+  </div>`;
+}
+
+function renderLog(){
+  if(isRest()){renderRestDay();updateDock();return;}
+  const {done,total}=counts();
+  if(total>0&&done===total&&!forceEdit){renderComplete();return;}
+  let h=mainEx().map(x=>exCard(x,false)).join('');
+  h+=`<div class="blockhead"><div class="t">Overtime contingency · optional</div><div class="r"></div></div>`;
+  h+=bonusEx().map(x=>exCard(x,true)).join('');
+  h+=`<div class="foot">
+    <button class="mini" id="addex">+ Exercise</button>
+    <button class="mini" id="addbonus">+ Bonus</button>
+    <button class="mini" id="clear">Reset day</button>
+    <button class="mini" id="export">Export</button>
+  </div>
+  <div class="datefile">
+    <span>File under</span>
+    <input type="date" id="logdate" value="${esc(fileDate())}" max="${esc(todayISO())}">
+    <button class="mini" id="datereset">Today</button>
+  </div>`;
+  $('#view').innerHTML=h;
+  wireLog();updateDock();
+}
+
+function wireLog(){
+  const list=allEx();
+  const find=id=>list.find(a=>a.id===id);
+  $('#view').querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
+    const x=find(b.dataset.tog);const i=+b.dataset.i;
+    const nowOn=toggleSet(x,i);
+    if(nowOn&&x.type!=='cardio')startRest(defRest(x));
+    if(!nowOn)skipRest();
+    const c=counts();
+    if(c.total>0&&c.done===c.total&&!forceEdit){render();return;}
+    renderLog();
+  });
+  $('#view').querySelectorAll('input[data-ex]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      setVal(e.target.dataset.ex,+e.target.dataset.i,e.target.dataset.f,e.target.value);
+      updateDock();
+    });
+  });
+  $('#view').querySelectorAll('input[data-rename]').forEach(inp=>{
+    inp.addEventListener('change',e=>{const x=find(e.target.dataset.rename);if(x){x.name=e.target.value.trim()||x.name;persist();render();}});
+  });
+  $('#view').querySelectorAll('[data-trend]').forEach(b=>b.onclick=()=>{
+    progEx=b.dataset.trend;tab='prog';render();});
+  const dt=$('#logdate');
+  if(dt)dt.onchange=e=>{S.fileDate=e.target.value||todayISO();persist();updateDock();};
+  const dr=$('#datereset');
+  if(dr)dr.onclick=()=>{S.fileDate=null;persist();renderLog();};
+  $('#view').querySelectorAll('[data-unit]').forEach(b=>b.onclick=()=>{
+    const x=find(b.dataset.unit);const from=unitOf(x);const to=from==='lb'?'kg':'lb';
+    const d=getDraft();
+    (d[x.id]||[]).forEach(r=>{if(r&&r.w)r.w=tidy(conv(num(r.w),from,to));});
+    x.unit=to;persist();renderLog();toast('Switched to '+to);
+  });
+  $('#view').querySelectorAll('[data-addset]').forEach(b=>b.onclick=()=>{const x=find(b.dataset.addset);x.sets++;persist();render();});
+  $('#view').querySelectorAll('[data-rmset]').forEach(b=>b.onclick=()=>{const x=find(b.dataset.rmset);if(x.sets>1)x.sets--;persist();render();});
+  $('#view').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    const x=find(b.dataset.del);if(!confirm('Remove '+x.name+'?'))return;
+    ['ex','bonus'].forEach(k=>{const arr=plan()[k]||[];const i=arr.findIndex(a=>a.id===x.id);if(i>-1)arr.splice(i,1);});
+    persist();render();});
+  $('#view').querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
+    const x=find(b.dataset.rest);
+    const i=REST_STEPS.indexOf(defRest(x));
+    x.rest=REST_STEPS[(i+1)%REST_STEPS.length];
+    persist();renderLog();});
+  $('#addex').onclick=()=>openLibrary('ex');
+  $('#addbonus').onclick=()=>openLibrary('bonus');
+  $('#clear').onclick=()=>{if(confirm('Clear all entries for '+plan().day+'?')){S.draft[dayKey]={};forceEdit=false;skipRest();persist();render();}};
+  $('#export').onclick=async()=>{
+    const txt=JSON.stringify({program:S.program,sessions:S.sessions},null,1);
+    try{await navigator.clipboard.writeText(txt);toast('Copied');}
+    catch(e){const w=window.open('','_blank');if(w)w.document.write('<pre>'+esc(txt)+'</pre>');else toast('Copy blocked');}
+  };
+}
+
+const CREEDS=[
+  'THE WORK IS MYSTERIOUS AND IMPORTANT.<br>THE PROGRESS IS NOT. IT IS ARITHMETIC.',
+  'A SET DEFERRED IS A SET SUBTRACTED.<br>YOU SUBTRACTED NOTHING TODAY.',
+  'PLEASE ENJOY EACH REP EQUALLY.<br>THE LAST ONE MOST OF ALL.',
+  'YOUR OUTIE EATS THE PROTEIN.<br>YOUR INNIE DID THE WORK.',
+  'ATTENDANCE IS THE ONLY VARIABLE<br>YOU FULLY CONTROL. LOGGED.'
+];
+function renderComplete(){
+  const v=volume();const {total}=counts();
+  const creed=CREEDS[Math.floor(Math.random()*CREEDS.length)];
+  $('#view').innerHTML=`<div class="done-screen">
+    <div class="eyebrow">File 100% complete</div>
+    <h2>Refinement done</h2>
+    <p>${esc(plan().day+' — '+plan().label)}. Every set accounted for.</p>
+    <div class="donestats">
+      <div class="donestat"><div class="n">${total}</div><div class="l">Sets</div></div>
+      <div class="donestat"><div class="n">${fmt(fromLb(v,disp()))}</div><div class="l">Tonnage ${disp()}</div></div>
+    </div>
+    <div class="creed">${creed}</div>
+    <button class="mini" id="celeedit">Reopen file</button>
+  </div>`;
+  $('#celeedit').onclick=()=>{forceEdit=true;render();};
+  updateDock();
+}
+
+/* ===================== dock ===================== */
+function updateDock(){
+  const v=volume();
+  $('#volnum').textContent=showVol(v);
+  $('#vollabel').textContent=(S.fileDate&&S.fileDate!==todayISO())
+    ? 'Filing under '+S.fileDate
+    : plan().day+' · '+plan().label+' · tap total for '+(disp()==='lb'?'kg':'lb');
+  $('#save').disabled=isRest()||v===0;
+  fitPad();
+}
+function fitPad(){requestAnimationFrame(()=>{document.body.style.paddingBottom=($('#footstack').offsetHeight+18)+'px';});}
+$('#volnum').parentElement.onclick=()=>{S.disp=disp()==='lb'?'kg':'lb';persist();render();};
+
+$('#save').onclick=()=>{
+  const d=getDraft();
+  const entry={id:uid(),date:fileDate(),dayKey,label:plan().day+' '+plan().label,ex:[],vol:volume()};
+  allEx().forEach(x=>{
+    const arr=[];
+    for(let i=0;i<x.sets;i++){const c=(d[x.id]||[])[i];if(c&&c.on)arr.push({w:num(c.w),r:num(c.r)});}
+    if(arr.length)entry.ex.push({name:x.name,type:x.type,unit:unitOf(x),sets:arr});
+  });
+  if(!entry.ex.length){toast('Nothing logged');return;}
+  S.sessions.push(entry);
+  S.sessions.sort((a,b)=>a.date<b.date?-1:1);
+  S.draft[dayKey]={};forceEdit=false;skipRest();S.fileDate=null;persist();
+  toast('Filed · '+fmt(entry.vol)+' lb');
+  render();
+};
+
+/* ===================== archive ===================== */
+function renderHistory(){
+  if(!S.sessions.length){$('#view').innerHTML='<div class="empty">Archive empty<br>File a session to populate</div>';return;}
+  $('#view').innerHTML=[...S.sessions].reverse().map(s=>{
+    const rows=s.ex.map(x=>{
+      const t=x.type==='cardio'?x.sets.map(k=>k.r+' min'+(k.w?' @ '+k.w:'')).join(', '):x.sets.map(k=>k.w+'×'+k.r).join('  ')+' '+(x.unit||'lb');
+      return `<li>${esc(x.name)}<span>${esc(t)}</span></li>`;
+    }).join('');
+    return `<div class="sess">
+      <div class="sesshead"><div class="sessday">${esc(s.label)}</div>
+      <div class="sessmeta">${esc(dstr(new Date(s.date+'T12:00')))} · ${showVol(s.vol).toUpperCase()}</div></div>
+      <ul class="sesslist">${rows}</ul>
+      <div class="rowtools"><button class="mini" data-delsess="${s.id}">Delete</button></div></div>`;
+  }).join('');
+  $('#view').querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>{
+    if(confirm('Delete this session?')){S.sessions=S.sessions.filter(x=>x.id!==b.dataset.delsess);persist();render();}});
+}
+
+/* ===================== trends ===================== */
+let progEx=null;
+function allNames(){
+  const set=new Set();
+  ORDER.forEach(k=>(S.program[k].ex||[]).concat(S.program[k].bonus||[]).forEach(x=>{if(x.type!=='cardio')set.add(x.name)}));
+  S.sessions.forEach(s=>s.ex.forEach(x=>{if(x.type!=='cardio')set.add(x.name)}));
+  return [...set].sort();
+}
+function seriesFor(name){
+  const out=[];
+  S.sessions.forEach(s=>s.ex.filter(x=>x.name.toLowerCase()===name.toLowerCase()).forEach(x=>{
+    let top=0,tw=0,tr=0,vol=0;const u=x.unit||'lb';
+    x.sets.forEach(t=>{const lb=toLb(t.w,u);vol+=lb*t.r;const v=e1rm(lb,t.r);if(v>top){top=v;tw=lb;tr=t.r;}});
+    if(top)out.push({date:s.date,e:top,w:tw,r:tr,vol});
+  }));
+  return out;
+}
+function chart(raw){
+  if(raw.length<2)return '<div class="empty">Insufficient data<br>Two sessions required</div>';
+  const U=disp();
+  const data=raw.map(d=>({date:d.date,e:fromLb(metricVal(d.e),U)}));
+  const W=560,H=170,P=26;
+  const vals=data.map(d=>d.e);
+  const min=Math.min(...vals)*.94,max=Math.max(...vals)*1.04;
+  const x=i=>P+i*(W-P*2)/(data.length-1);
+  const y=v=>H-P-((v-min)/(max-min||1))*(H-P*1.6);
+  const line=data.map((d,i)=>(i?'L':'M')+x(i).toFixed(1)+' '+y(d.e).toFixed(1)).join(' ');
+  const dots=data.map((d,i)=>`<rect x="${(x(i)-3).toFixed(1)}" y="${(y(d.e)-3).toFixed(1)}" width="6" height="6" fill="#5AD9E8"/>`).join('');
+  return `<div class="chartbox"><svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Estimated 1RM over time">
+    <path d="${line} L ${x(data.length-1).toFixed(1)} ${H-P} L ${P} ${H-P} Z" fill="rgba(90,217,232,.14)"/>
+    <line x1="${P}" x2="${W-P}" y1="${H-P}" y2="${H-P}" stroke="#164A5F"/>
+    <path d="${line}" fill="none" stroke="#5AD9E8" stroke-width="2"/>
+    ${dots}
+    <text x="${P}" y="15" fill="#4A7A8C" font-size="10" font-family="IBM Plex Mono">${metricLabel().toUpperCase()} / ${U.toUpperCase()}</text>
+    <text x="${P}" y="${H-8}" fill="#4A7A8C" font-size="10" font-family="IBM Plex Mono">${data[0].date.slice(5)}</text>
+    <text x="${W-P}" y="${H-8}" fill="#4A7A8C" font-size="10" text-anchor="end" font-family="IBM Plex Mono">${data[data.length-1].date.slice(5)}</text>
+  </svg></div>`;
+}
+function renderProgress(){
+  const names=allNames();
+  if(!S.sessions.length){$('#view').innerHTML='<div class="empty">No filed sessions<br>Trends unavailable</div>';return;}
+  if(!progEx||!names.includes(progEx))progEx=names[0];
+  const data=seriesFor(progEx),best=bestFor(progEx);
+  const gain=data.length>1?((data[data.length-1].e-data[0].e)/data[0].e*100):0;
+  let h=`<select class="pick" id="pick">${names.map(n=>`<option ${n===progEx?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+  const U=disp();
+  h+=`<div class="stats">
+    <div class="stat"><div class="n">${best?Math.round(fromLb(metricVal(best.e),U)):'—'}</div><div class="l">Best ${metricLabel()} ${U}</div></div>
+    <div class="stat"><div class="n">${best?tidy(Math.round(fromLb(best.w,U)*2)/2)+'×'+best.r:'—'}</div><div class="l">Best set</div></div>
+    <div class="stat"><div class="n">${data.length>1?(gain>=0?'+':'')+gain.toFixed(1)+'%':'—'}</div><div class="l">Change</div></div>
+  </div>`+chart(data);
+  h+=`<h2 class="sec">Session log</h2><div class="sess"><ul class="sesslist">`+
+    [...data].reverse().map(d=>`<li>${esc(dstr(new Date(d.date+'T12:00')))}<span>${tidy(Math.round(fromLb(d.w,U)*2)/2)}×${d.r} · ${fmt(fromLb(d.vol,U))} ${U}</span></li>`).join('')+`</ul></div>`;
+  h+=`<h2 class="sec">Flagged · no movement</h2>`+stuck();
+  $('#view').innerHTML=h;
+  $('#pick').onchange=e=>{progEx=e.target.value;renderProgress();};
+}
+function stuck(){
+  const rows=allNames().map(n=>{
+    const d=seriesFor(n);if(d.length<3)return null;
+    const base=d[d.length-3].e;
+    return d.slice(-3).every(x=>x.e<=base*1.01)?`<li>${esc(n)}<span>3 flat</span></li>`:null;
+  }).filter(Boolean);
+  return rows.length?`<div class="sess"><ul class="sesslist">${rows.join('')}</ul></div>`:'<div class="empty">Nothing flagged</div>';
+}
+
+/* ===================== library sheet ===================== */
+let libTarget='ex',libGroup=null,libQ='';
+function openLibrary(target){
+  libTarget=target;libGroup=null;libQ='';
+  $('#libsearch').value='';
+  $('#sheettitle').textContent=target==='bonus'?'Add bonus exercise':'Add exercise';
+  $('#veil').hidden=false;
+  paintLib();
+}
+function closeLibrary(){$('#veil').hidden=true;}
+function paintLib(){
+  $('#libchips').innerHTML=GROUPS.map(g=>`<button class="chip" aria-pressed="${g===libGroup}" data-g="${g}">${g}</button>`).join('');
+  $('#libchips').querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{
+    libGroup=libGroup===b.dataset.g?null:b.dataset.g;paintLib();});
+  const q=libQ.trim().toLowerCase();
+  const rows=LIBRARY.filter(r=>(!libGroup||r[1]===libGroup)&&(!q||r[0].toLowerCase().includes(q)||r[2].toLowerCase().includes(q)));
+  $('#liblist').innerHTML=rows.length?rows.map(r=>
+    `<button class="libitem" data-add="${esc(r[0])}"><span><span class="nm">${esc(r[0])}</span><span class="sub">${esc(r[2])} · ${esc(r[1])} · ${r[3]}s</span></span><span class="plus">+</span></button>`
+  ).join(''):'<div class="empty">No match<br>Use custom exercise</div>';
+  $('#liblist').querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+    const r=LIBRARY.find(l=>l[0]===b.dataset.add);
+    addExercise(r[0],3,r[4],r[5],r[3]);});
+}
+function addExercise(name,sets,lo,hi,restSec){
+  const x=ex(name,sets,lo,hi);
+  if(restSec)x.rest=restSec;
+  if(libTarget==='bonus'){if(!plan().bonus)plan().bonus=[];plan().bonus.push(x);}
+  else{const a=plan().ex;a.splice(Math.max(0,a.length-1),0,x);}
+  persist();closeLibrary();render();toast('Added '+name);
+}
+$('#libsearch').addEventListener('input',e=>{libQ=e.target.value;paintLib();});
+$('#sheetclose').onclick=closeLibrary;
+$('#veil').addEventListener('click',e=>{if(e.target.id==='veil')closeLibrary();});
+$('#libcustom').onclick=()=>{
+  const name=prompt('Exercise name');if(!name)return;
+  const lo=parseInt(prompt('Bottom of rep range','10'),10)||10;
+  const hi=parseInt(prompt('Top of rep range','12'),10)||lo;
+  addExercise(name,3,lo,hi,lo<=10?90:60);
+};
+
+/* ===================== backup + config ===================== */
+function snapshot(){return JSON.stringify({v:1,program:S.program,sessions:S.sessions,bw:S.bw||[],disp:S.disp||'lb',metric:S.metric||'e1rm'},null,1);}
+function exportFile(){
+  const txt=snapshot();
+  try{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([txt],{type:'application/json'}));
+    a.download='refinement-'+todayISO()+'.json';
+    document.body.appendChild(a);a.click();a.remove();
+    S.lastBackup=todayISO();persist();
+    toast('Backup exported');renderConfig();
+  }catch(e){
+    navigator.clipboard&&navigator.clipboard.writeText(txt);
+    toast('Copied to clipboard');
+  }
+}
+function importFile(file){
+  const fr=new FileReader();
+  fr.onload=()=>{
+    try{
+      const o=JSON.parse(fr.result);
+      if(!o.program||!Array.isArray(o.sessions))throw 0;
+      if(!confirm('Replace everything with this backup? '+o.sessions.length+' sessions.'))return;
+      S.program=o.program;S.sessions=o.sessions;S.bw=o.bw||[];
+      S.disp=o.disp||'lb';S.metric=o.metric||'e1rm';S.draft={};
+      persist();render();toast('Backup restored');
+    }catch(e){toast('File not readable');}
+  };
+  fr.readAsText(file);
+}
+$('#importfile').addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0];
+  if(f)importFile(f);
+  e.target.value='';
+});
+
+function metricLabel(){return (S.metric||'e1rm')==='e10rm'?'e10RM':'e1RM';}
+function metricVal(e1){return (S.metric||'e1rm')==='e10rm'?e1/(1+10/30):e1;}
+
+function renderConfig(){
+  const U=disp();
+  const bw=(S.bw||[]);
+  const lastBw=bw.length?bw[bw.length-1]:null;
+  const bwDelta=bw.length>1?fromLb(toLb(bw[bw.length-1].w,bw[bw.length-1].u),U)-fromLb(toLb(bw[0].w,bw[0].u),U):0;
+  const stale=!S.lastBackup||(Date.now()-new Date(S.lastBackup+'T12:00').getTime())>1209600000;
+  $('#view').innerHTML=`
+  <div class="cfg">
+    <h3>Body weight</h3>
+    <p>${lastBw?'Last entry '+tidy(fromLb(toLb(lastBw.w,lastBw.u),U))+' '+U+' on '+lastBw.d:'Nothing logged yet.'}</p>
+    <div class="cfgrow">
+      <input type="number" id="bwval" inputmode="decimal" placeholder="Weight in ${U}">
+      <button class="mini" id="bwlog">Log</button>
+    </div>
+    ${bw.length?`<ul class="bwlist">${[...bw].reverse().slice(0,8).map(e=>`<li><span>${esc(e.d)}</span><b>${tidy(fromLb(toLb(e.w,e.u),U))} ${U}</b></li>`).join('')}</ul>
+    <p style="margin-top:9px">${bw.length>1?'Change since first entry: '+(bwDelta>=0?'+':'')+tidy(Math.round(bwDelta*10)/10)+' '+U:''}</p>
+    <div class="rowtools"><button class="mini" id="bwclear">Clear log</button></div>`:''}
+  </div>
+
+  <div class="cfg">
+    <h3>Data</h3>
+    <p>${stale?'<span class="warn">Backup overdue</span>':'Last backup '+S.lastBackup}<br>
+    Everything is stored on this phone only. iOS clears web storage on its own schedule, so export a file every couple of weeks.</p>
+    <div class="cfgrow">
+      <button class="mini" id="doexport">Export file</button>
+      <button class="mini" id="doimport">Import file</button>
+      <button class="mini" id="docopy">Copy JSON</button>
+    </div>
+    <p style="margin-top:9px">${S.sessions.length} sessions · ${allNames().length} exercises tracked</p>
+  </div>
+
+  <div class="cfg">
+    <h3>Strength metric</h3>
+    <p>Charts and personal bests. e10RM is the load you could move for 10 reps, which sits inside the range you actually train. e1RM extrapolates to a single max you never attempt.</p>
+    <div class="seg">
+      <button data-metric="e10rm" aria-pressed="${(S.metric||'e1rm')==='e10rm'}">e10RM</button>
+      <button data-metric="e1rm" aria-pressed="${(S.metric||'e1rm')==='e1rm'}">e1RM</button>
+    </div>
+  </div>
+
+  <div class="cfg">
+    <h3>Display units</h3>
+    <p>Totals and charts. Individual exercises keep their own unit, set on the card.</p>
+    <div class="seg">
+      <button data-disp="lb" aria-pressed="${U==='lb'}">lb</button>
+      <button data-disp="kg" aria-pressed="${U==='kg'}">kg</button>
+    </div>
+  </div>
+
+  <div class="cfg danger">
+    <h3>Danger zone</h3>
+    <p>Export first if you want any of this back.</p>
+    <button class="btn-danger" id="wipe">Delete all data</button>
+  </div>`;
+
+  $('#bwlog').onclick=()=>{
+    const v=num($('#bwval').value);
+    if(!v){toast('Enter a number');return;}
+    if(!S.bw)S.bw=[];
+    S.bw=S.bw.filter(e=>e.d!==todayISO());
+    S.bw.push({d:todayISO(),w:v,u:U});
+    S.bw.sort((a,b)=>a.d<b.d?-1:1);
+    persist();renderConfig();toast('Logged');
+  };
+  const bwc=$('#bwclear');
+  if(bwc)bwc.onclick=()=>{if(confirm('Clear the body weight log?')){S.bw=[];persist();renderConfig();}};
+  $('#doexport').onclick=exportFile;
+  $('#doimport').onclick=()=>$('#importfile').click();
+  $('#docopy').onclick=async()=>{
+    try{await navigator.clipboard.writeText(snapshot());S.lastBackup=todayISO();persist();toast('Copied');renderConfig();}
+    catch(e){toast('Copy blocked');}
+  };
+  $('#view').querySelectorAll('[data-metric]').forEach(b=>b.onclick=()=>{S.metric=b.dataset.metric;persist();renderConfig();});
+  $('#view').querySelectorAll('[data-disp]').forEach(b=>b.onclick=()=>{S.disp=b.dataset.disp;persist();renderConfig();});
+  $('#wipe').onclick=()=>{
+    if(!confirm('Delete every session, every setting, everything?'))return;
+    if(!confirm('Last chance. This cannot be undone.'))return;
+    S={program:JSON.parse(JSON.stringify(DEFAULT)),sessions:[],draft:{},bw:[]};
+    persist();tab='log';render();toast('All data deleted');
+  };
+}
+
+/* ===================== router ===================== */
+function render(){
+  paintDays();paintBins();
+  $('#t-log').setAttribute('aria-selected',tab==='log');
+  $('#t-hist').setAttribute('aria-selected',tab==='hist');
+  $('#t-prog').setAttribute('aria-selected',tab==='prog');
+  $('#t-cfg').setAttribute('aria-selected',tab==='cfg');
+  $('#dock').hidden=tab!=='log';
+  $('#days').style.display=tab==='log'?'flex':'none';
+  $('#bins').style.display=tab==='log'?'flex':'none';
+  document.querySelector('.readout').style.display=tab==='log'?'flex':'none';
+  if(tab==='log')renderLog();
+  else if(tab==='hist')renderHistory();
+  else if(tab==='prog')renderProgress();
+  else renderConfig();
+  fitPad();
+}
+$('#t-cfg').onclick=()=>{tab='cfg';render();};
+$('#t-log').onclick=()=>{tab='log';render();};
+$('#t-hist').onclick=()=>{tab='hist';render();};
+$('#t-prog').onclick=()=>{tab='prog';render();};
+
+(async()=>{
+  const saved=await load();
+  if(saved&&saved.program)S=Object.assign({program:DEFAULT,sessions:[],draft:{}},saved);
+  render();
+})();
+</script>
+</body>
+</html>
