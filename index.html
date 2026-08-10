@@ -144,6 +144,12 @@ main{padding-bottom:16px}
 .metabtns{display:flex;gap:6px;flex-wrap:wrap}
 @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
 .setno.pulse{animation:pulse .22s ease}
+@keyframes cardflash{
+  0%{box-shadow:0 0 0 0 rgba(63,224,165,.55)}
+  55%{box-shadow:0 0 0 16px rgba(63,224,165,0)}
+  100%{box-shadow:0 0 0 0 rgba(63,224,165,0)}
+}
+.card.flash{animation:cardflash .75s ease-out}
 .lastref{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.03em}
 .warmchip{background:none;border:1px solid var(--line-soft);border-radius:10px;padding:3px 9px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);cursor:pointer}
 .warmchip.active{background:var(--amber,#F0B429);border-color:var(--amber,#F0B429);color:#1B1400;font-weight:700}
@@ -189,9 +195,8 @@ main{padding-bottom:16px}
 .dock{background:rgba(4,22,31,.96);backdrop-filter:blur(9px);border-top:1px solid var(--line);padding:9px 12px}
 .dock[hidden]{display:none}
 .dockin{max-width:640px;margin:0 auto;display:flex;align-items:center;gap:11px}
-.vol{flex:1;min-width:0}
-.vol .n{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;line-height:1.1}
-.vol .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint)}
+.vol{flex:1;min-width:0;cursor:pointer}
+.vol .l{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .save{background:var(--cyan);color:#03141C;border:0;border-radius:2px;padding:10px 16px;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase}
 .save:disabled{background:var(--panel2);color:#3D6A7C}
 .tabs{display:flex;background:var(--panel);border-top:1px solid var(--line);padding:5px 6px calc(5px + env(safe-area-inset-bottom))}
@@ -471,7 +476,6 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
   <div class="dock" id="dock">
     <div class="dockin">
       <div class="vol">
-        <div class="n sens" id="volnum">0 lb</div>
         <div class="l" id="vollabel">Tonnage</div>
       </div>
       <button class="save" id="save">File workout</button>
@@ -1164,6 +1168,12 @@ function renderLog(){
 }
 
 const advanceTimers=new WeakMap();
+function flashExerciseDone(x){
+  const card=$('#view').querySelector(`[data-card="${x.id}"]`);
+  if(card){card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),750);}
+  blip(880);
+  toast('Refined — '+x.name);
+}
 function scheduleAdvance(inp){
   clearTimeout(advanceTimers.get(inp));
   const t=setTimeout(()=>{
@@ -1186,6 +1196,7 @@ function scheduleAutoComplete(inp){
     if(!x)return;
     const row=rowOf(exId,i);
     if(row.on||!row.w||!row.r)return;
+    const wasComplete=exComplete(x);
     const nowOn=toggleSet(x,i);
     blip(nowOn?720:420);
     if(nowOn&&x.type!=='cardio')startRest(defRest(x));
@@ -1194,6 +1205,7 @@ function scheduleAutoComplete(inp){
     renderLog();
     const fresh=$('#view').querySelector(`[data-tog="${exId}"][data-i="${i}"]`);
     if(fresh){fresh.classList.add('pulse');setTimeout(()=>fresh.classList.remove('pulse'),240);}
+    if(!wasComplete&&exComplete(x))flashExerciseDone(x);
     const nextWeight=$('#view').querySelector(`input[data-ex="${exId}"][data-i="${i+1}"][data-f="w"]`);
     if(nextWeight){nextWeight.focus();if(nextWeight.select)nextWeight.select();}
   },650);
@@ -1204,6 +1216,7 @@ function wireLog(){
   const find=id=>list.find(a=>a.id===id);
   $('#view').querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
     const x=find(b.dataset.tog);const i=+b.dataset.i;const exId=b.dataset.tog;
+    const wasComplete=exComplete(x);
     const nowOn=toggleSet(x,i);
     blip(nowOn?720:420);
     if(nowOn&&x.type!=='cardio')startRest(defRest(x));
@@ -1213,6 +1226,7 @@ function wireLog(){
     renderLog();
     const fresh=$('#view').querySelector(`[data-tog="${exId}"][data-i="${i}"]`);
     if(fresh){fresh.classList.add('pulse');setTimeout(()=>fresh.classList.remove('pulse'),240);}
+    if(!wasComplete&&exComplete(x))flashExerciseDone(x);
   });
   $('#view').querySelectorAll('[data-warmtoggle]').forEach(b=>b.onclick=()=>{
     toggleWarm(b.dataset.warmtoggle,+b.dataset.i);renderLog();});
@@ -1492,17 +1506,38 @@ function renderComplete(){
 }
 
 /* ===================== dock ===================== */
+function todayGroupAverages(){
+  const d=getDraft();
+  const sums={};
+  allEx().forEach(x=>{
+    if(x.type==='cardio')return;
+    const g=groupOf(x.name);
+    (d[x.id]||[]).forEach(r=>{
+      if(r&&r.on&&!r.warm&&r.w){
+        if(!sums[g])sums[g]={tot:0,n:0};
+        sums[g].tot+=toLb(num(r.w),unitOf(x));
+        sums[g].n++;
+      }
+    });
+  });
+  return Object.entries(sums).map(([group,s])=>({group,avg:s.tot/s.n}));
+}
 function updateDock(){
   const v=volume();
-  $('#volnum').textContent=showVol(v);
-  $('#vollabel').textContent=(S.fileDate&&S.fileDate!==todayISO())
-    ? 'Filing under '+S.fileDate
-    : plan().day+' · '+plan().label+' · tap total for '+(disp()==='lb'?'kg':'lb');
+  const groups=todayGroupAverages();
+  if(groups.length){
+    const U=disp();
+    $('#vollabel').textContent=groups.map(g=>g.group.slice(0,4).toUpperCase()+' '+Math.round(fromLb(g.avg,U))+U).join(' · ');
+  }else{
+    $('#vollabel').textContent=(S.fileDate&&S.fileDate!==todayISO())
+      ? 'Filing under '+S.fileDate
+      : plan().day+' · '+plan().label+' · tap for '+(disp()==='lb'?'kg':'lb');
+  }
   $('#save').disabled=isRest()||v===0;
   fitPad();
 }
 function fitPad(){requestAnimationFrame(()=>{document.body.style.paddingBottom=($('#footstack').offsetHeight+18)+'px';});}
-$('#volnum').parentElement.onclick=()=>{S.disp=disp()==='lb'?'kg':'lb';persist();render();};
+document.querySelector('.vol').onclick=()=>{S.disp=disp()==='lb'?'kg':'lb';persist();render();};
 
 $('#save').onclick=()=>{
   const d=getDraft();
