@@ -52,6 +52,7 @@ header{position:sticky;top:0;z-index:20;background:linear-gradient(var(--void) 8
 .crest h1{margin:0;font-size:17px;font-weight:700;letter-spacing:.42em;text-transform:uppercase}
 .crestright{display:flex;align-items:center;gap:9px}
 .crest .code{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.2em;color:var(--faint);text-align:right;white-space:nowrap}
+.helpbtn{background:var(--panel);border:1px solid var(--line);border-radius:50%;color:var(--faint);font-size:11px;font-weight:700;width:24px;height:24px;line-height:1;cursor:pointer;flex:0 0 auto}
 .sevbtn{background:var(--panel);border:1px solid var(--line);border-radius:2px;color:var(--faint);font-size:9px;letter-spacing:.12em;padding:5px 7px;cursor:pointer;white-space:nowrap}
 .sevbtn[aria-pressed="true"]{background:var(--amber,#F0B429);border-color:#F0B429;color:#1B1400}
 .sens{filter:blur(0);transition:filter .15s}
@@ -69,6 +70,13 @@ body.severed .sens:active{filter:blur(0)}
 .readout .pct{font-size:19px;color:var(--ink);letter-spacing:.06em}
 
 .days{display:flex;gap:5px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none}
+.quickadd{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.jumpstrip{display:flex;gap:5px;overflow-x:auto;padding-bottom:9px;scrollbar-width:none}
+.jumpstrip::-webkit-scrollbar{display:none}
+.jumppill{flex:0 0 auto;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--faint);background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:5px 9px;cursor:pointer}
+.jumppill.done{color:var(--green);border-color:var(--green)}
+.archsearch{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:2px;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;margin-bottom:11px}
+.archsearch:focus{outline:0;border-color:var(--cyan)}
 .days::-webkit-scrollbar{display:none}
 .day{flex:0 0 auto;border:1px solid var(--line);background:var(--panel);border-radius:2px;padding:6px 11px;cursor:pointer;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
 .day b{display:block;font-size:9px;letter-spacing:.2em;color:var(--faint);font-weight:500}
@@ -84,45 +92,56 @@ main{padding-bottom:16px}
 .card.complete{border-color:var(--green);background:linear-gradient(rgba(63,224,165,.09),rgba(63,224,165,.03)),var(--panel)}
 .card.bonus{border-style:dashed;border-color:var(--line-soft)}
 .exhead{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.grip{background:none;border:0;color:var(--faint);font-size:19px;line-height:1;cursor:grab;touch-action:none;flex:0 0 auto;min-width:40px;min-height:40px;margin:-8px -4px -8px -8px;display:flex;align-items:center;justify-content:center}
+.grip:active{cursor:grabbing;color:var(--cyan)}
+.card.dragging{position:relative;z-index:40;box-shadow:0 14px 30px -10px rgba(0,0,0,.6);border-color:var(--cyan);opacity:.96}
 .exname{font-size:15px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;line-height:1.2;margin:0;background:none;border:0;padding:0;width:100%}
 .exname:focus{outline:1px solid var(--cyan);outline-offset:3px}
-.meta{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--faint);margin-top:3px;text-transform:uppercase}
+.meta{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;color:var(--faint);margin-top:3px;text-transform:uppercase;background:none;border:0;padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%}
+.collapseicon{color:var(--faint);font-size:9px}
+.card.collapsed .cardbody{display:none}
+.cardbody{margin-top:0}
 .kebab{background:none;border:0;color:var(--faint);font-size:17px;line-height:1;padding:0 2px;cursor:pointer}
 .tag{font-family:'IBM Plex Mono',monospace;font-size:9px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:3px 6px;border-radius:2px;white-space:nowrap}
 .tag.up{background:var(--cyan);color:#03141C}
 .tag.warn2{background:var(--red);color:#1B0300}
+.tag.pr{background:var(--green);color:#0F1A13}
 .tag.done{background:var(--green);color:#03211A}
 
 /* dots */
-.dots{display:flex;gap:7px;margin:10px 0 2px;flex-wrap:wrap}
-.dot{
-  width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);
-  cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);
+.setrow{margin-top:9px}
+.setmain{display:grid;grid-template-columns:34px 1fr 1fr;gap:6px;align-items:center}
+.setmain.cardio3{grid-template-columns:34px 1fr 1fr}
+.setno{
+  width:34px;height:34px;border-radius:50%;border:1.5px solid var(--line);background:var(--panel2);
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--faint);font-weight:600;
   display:flex;align-items:center;justify-content:center;transition:.2s;padding:0;
 }
-.dot[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#03211A;font-weight:600}
-.dot:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
-
-.setrow{display:grid;grid-template-columns:20px 1fr 1fr 40px 58px;gap:5px;align-items:center;margin-top:7px}
+.setno[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:#03211A}
+.setno:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 .field.rir input{padding:8px 4px;font-size:14px;text-align:center}
 .field.rir label{position:static;display:block;text-align:center;font-size:7px;margin-top:1px;transform:none}
 .field.rir{display:flex;flex-direction:column}
-.cardio .setrow{grid-template-columns:20px 1fr 1fr 58px}
-.setno{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--faint);text-align:center;background:none;border:0;padding:0;cursor:pointer;width:100%}
-.setrow.on .setno{color:var(--green)}
-.setno.warm{color:var(--amber,#F0B429);font-weight:700}
-.setrow.on .setno.warm{color:var(--amber,#F0B429)}
 .field{position:relative}
 .field input{width:100%;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:8px 8px 8px 9px;font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500}
 .field input:focus{outline:0;border-color:var(--cyan)}
 .field input::placeholder{color:#3D6A7C}
 .field label{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.14em;text-transform:uppercase;pointer-events:none}
-.field .u{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:rgba(90,217,232,.1);border:1px solid var(--line-soft);border-radius:2px;padding:3px 5px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;cursor:pointer;line-height:1}
-.field .u:active{background:var(--cyan);color:#03141C}
+.weightfield{display:flex;align-items:center;gap:4px;position:relative}
+.weightfield input{padding-right:8px;text-align:center;flex:1;min-width:0}
+.step{flex:0 0 auto;width:30px;height:34px;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;color:var(--cyan);font-size:16px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.step:active{background:var(--cyan);color:#03141C}
+.ulabel{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--faint);letter-spacing:.1em;text-transform:uppercase;flex:0 0 auto;padding-left:1px}
 .unitnote{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;margin-top:6px}
-.last{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);text-align:right;letter-spacing:.04em}
-.last b{color:var(--dim);font-weight:600}
-.rowtools{display:flex;gap:7px;margin-top:9px}
+.setmeta{display:flex;justify-content:space-between;align-items:center;margin-top:5px;padding-left:40px;flex-wrap:wrap;gap:6px}
+.metabtns{display:flex;gap:6px;flex-wrap:wrap}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.18)}100%{transform:scale(1)}}
+.setno.pulse{animation:pulse .22s ease}
+.lastref{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.03em}
+.warmchip{background:none;border:1px solid var(--line-soft);border-radius:10px;padding:3px 9px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);cursor:pointer}
+.warmchip.active{background:var(--amber,#F0B429);border-color:var(--amber,#F0B429);color:#1B1400;font-weight:700}
+.setrow.iswarm .setmain{opacity:.72}
+.rowtools{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
 .mini{background:none;border:1px solid var(--line-soft);border-radius:2px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:5px 8px;cursor:pointer}
 .mini:hover{border-color:var(--cyan);color:var(--ink)}
 
@@ -177,6 +196,7 @@ main{padding-bottom:16px}
 .sess{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);padding:11px;margin-bottom:9px}
 .sesshead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .sessday{font-size:14px;font-weight:600;letter-spacing:.16em;text-transform:uppercase}
+.fileno{font-size:9px;font-weight:400;letter-spacing:.1em;color:var(--faint);text-transform:none}
 .sessmeta{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.1em}
 .sesslist{margin:8px 0 0;padding:0;list-style:none;font-size:13px;color:var(--dim)}
 .sesslist li{display:flex;justify-content:space-between;gap:10px;padding:4px 0;border-top:1px solid var(--line-soft)}
@@ -188,7 +208,10 @@ select.pick{width:100%;background:var(--panel);border:1px solid var(--line);bord
 .stat .l{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-top:2px}
 .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:11px 9px 5px;margin-bottom:11px}
 .empty{color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;padding:26px 6px;text-align:center;line-height:1.9;text-transform:uppercase}
-.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:170px;z-index:50;background:var(--cyan);color:#03141C;padding:8px 15px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .2s,bottom .2s}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:170px;z-index:50;background:var(--cyan);color:#03141C;padding:8px 8px 8px 15px;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity .2s,bottom .2s;display:flex;align-items:center;gap:10px;max-width:88vw}
+.toast.show{pointer-events:auto}
+.toastundo{background:rgba(3,20,28,.18);border:0;border-radius:2px;padding:5px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;color:#03141C;white-space:nowrap}
+.toastundo[hidden]{display:none}
 /* modal */
 .veil{position:fixed;inset:0;z-index:60;background:rgba(2,11,16,.86);display:flex;align-items:flex-end;justify-content:center}
 .veil[hidden]{display:none}
@@ -203,6 +226,10 @@ select.pick{width:100%;background:var(--panel);border:1px solid var(--line);bord
 .chip[aria-pressed="true"]{background:var(--cyan);border-color:var(--cyan);color:#03141C}
 .libscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1}
 .libitem{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line-soft);border-radius:2px;padding:10px;margin-bottom:5px;cursor:pointer}
+.libitem[disabled]{opacity:.4;cursor:default}
+.wchipgrid{display:flex;flex-wrap:wrap;gap:7px}
+.wchip{flex:0 0 auto;min-width:56px;text-align:center;background:var(--panel);border:1px solid var(--line-soft);border-radius:4px;padding:11px 8px;font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer}
+.wchip:active{background:var(--cyan);color:#03141C;border-color:var(--cyan)}
 .libitem .nm{font-size:14px;font-weight:600;letter-spacing:.04em}
 .libitem .sub{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-top:2px}
 .libitem .plus{font-family:'IBM Plex Mono',monospace;color:var(--cyan);font-size:15px}
@@ -215,6 +242,12 @@ select.pick{width:100%;background:var(--panel);border:1px solid var(--line);bord
 .seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
 .seg button{background:var(--panel2);border:0;padding:8px 13px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--cyan);color:#03141C}
+.seg.small button{padding:6px 10px;font-size:9px}
+.dayeditor{display:flex;flex-direction:column;gap:8px}
+.dayrow{display:flex;align-items:center;gap:8px}
+.dayabbr{width:32px;font-size:10px;letter-spacing:.1em;color:var(--faint);flex:0 0 auto}
+.dayname{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--line-soft);border-radius:2px;padding:7px 8px;font-size:13px;color:var(--ink)}
+.dayname:focus{outline:0;border-color:var(--cyan)}
 .warn{color:#F0B429;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase}
 .danger{border-color:rgba(255,90,78,.5)}
 .danger h3{color:var(--red)}
@@ -240,6 +273,15 @@ select.pick{width:100%;background:var(--panel);border:1px solid var(--line);bord
 .milerow{display:flex;justify-content:space-between;padding:8px 4px;border-top:1px solid var(--line-soft);font-size:14px}
 .milenum{color:var(--cyan);font-weight:600}
 .milequote{margin-top:16px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);line-height:1.8}
+.legrow{display:flex;gap:12px;align-items:flex-start;padding:10px 2px;border-top:1px solid var(--line-soft)}
+.legrow:first-child{border-top:0}
+.legsym{flex:0 0 54px;font-size:14px;color:var(--cyan);padding-top:1px}
+.legname{font-size:13px;font-weight:600;letter-spacing:.03em;margin-bottom:2px}
+.legdesc{font-size:12px;color:var(--dim);line-height:1.5}
+.hbentry{padding:12px 2px;border-top:1px solid var(--line-soft)}
+.hbentry:first-child{border-top:0}
+.hbterm{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:5px}
+.hbdesc{font-size:13px;color:var(--dim);line-height:1.6}
 .voltable{list-style:none;margin:0;padding:0}
 .voltable li{display:grid;grid-template-columns:96px 1fr 26px 82px;gap:8px;align-items:center;padding:7px 0;border-top:1px solid var(--line-soft)}
 .voltable li:first-child{border-top:0}
@@ -302,6 +344,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 .badgeid{font-size:11px;letter-spacing:.16em;color:var(--dim)}
 .badgetag{font-size:9px;letter-spacing:.18em;color:var(--green);border:1px solid rgba(63,224,165,.4);border-radius:2px;padding:2px 6px}
 .badgename{font-size:20px;font-weight:700;letter-spacing:.1em;margin-bottom:9px}
+.badgerank{font-size:10px;letter-spacing:.2em;color:var(--cyan);margin:-6px 0 9px}
 .badgerow{font-size:10px;letter-spacing:.1em;color:var(--faint);text-transform:uppercase;padding:2px 0}
 .badgediv{height:1px;background:var(--line-soft);margin:9px 0}
 #gatefile{color:var(--cyan)}
@@ -318,25 +361,9 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 .gateroom{margin-bottom:16px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--void)}
 .gateroom svg{display:block}
 .gateroomcap{font-size:9px;letter-spacing:.18em;color:var(--faint);text-align:center;padding:7px 4px;border-top:1px solid var(--line-soft);background:var(--panel)}
-
-/* ---------- elevator ---------- */
-.elevator{position:fixed;inset:0;z-index:90;background:#010A0F;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.elevator[hidden]{display:none}
-.elevfloor{position:relative;z-index:1;font-size:clamp(48px,15vw,84px);font-weight:600;color:var(--cyan);letter-spacing:.06em;text-shadow:0 0 24px rgba(90,217,232,.4)}
-.elevpanel{position:absolute;top:0;bottom:0;width:52%;background:linear-gradient(90deg,#0A2634,#0E3243);z-index:2;transition:transform .9s cubic-bezier(.6,0,.2,1)}
-.elevpanel.left{left:0;border-right:1px solid var(--line);transform:translateX(0)}
-.elevpanel.right{right:0;border-left:1px solid var(--line);transform:translateX(0)}
-.elevator.open .elevpanel.left{transform:translateX(-102%)}
-.elevator.open .elevpanel.right{transform:translateX(102%)}
-.elevator.open .elevfloor{opacity:0;transition:opacity .4s}
 </style>
 </head>
 <body>
-<div class="elevator" id="elevator">
-  <div class="elevfloor mono" id="elevfloor">09</div>
-  <div class="elevpanel left"></div>
-  <div class="elevpanel right"></div>
-</div>
 <div class="gate" id="gate">
   <div class="gatewrap">
     <div class="gateline l1 mono">LUMON INDUSTRIES</div>
@@ -384,6 +411,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
         <div class="badgetag mono">ACTIVE</div>
       </div>
       <div class="badgename" id="badgename">K. BORSADA</div>
+      <div class="badgerank mono" id="badgerank">REFINER I</div>
       <div class="badgerow mono">DEPT · MACRODATA REFINEMENT</div>
       <div class="badgerow mono">LOCATION · CLUB 195, ANAHEIM HILLS</div>
       <div class="badgediv"></div>
@@ -404,6 +432,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
     <div class="crest">
       <h1>Refinement</h1>
       <div class="crestright">
+        <button class="helpbtn mono" id="helpbtn" aria-label="What do these icons mean?">?</button>
         <button class="sevbtn mono" id="sevbtn" aria-pressed="false">◑ SEVERED</button>
         <div class="code">DEPT / MDR-4<br>CLUB 195</div>
       </div>
@@ -442,7 +471,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
     <button id="t-cfg" aria-selected="false"><span class="ic">⚙</span><span>Config</span></button>
   </nav>
 </div>
-<div class="toast" id="toast"></div>
+<div class="toast" id="toast"><span id="toasttext"></span><button class="toastundo" id="toastundo" hidden>Undo</button></div>
 <input type="file" id="importfile" accept="application/json,.json" hidden>
 <div class="veil" id="veil" hidden>
   <div class="sheet">
@@ -461,8 +490,14 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 /* ===================== storage ===================== */
 const KEY='refinement:v1';
 let mem=null;
-async function load(){try{const r=await window.storage.get(KEY);return r?JSON.parse(r.value):null;}catch(e){return mem;}}
-async function persist(){mem=S;try{await window.storage.set(KEY,JSON.stringify(S));}catch(e){}}
+async function load(){
+  try{const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):null;}
+  catch(e){return mem;}
+}
+async function persist(){
+  mem=S;
+  try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}
+}
 
 /* ===================== program ===================== */
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -515,6 +550,9 @@ const DEFAULT={
   sat:{day:'Sat',label:'Rest',kind:'rest'},
   sun:{day:'Sun',label:'Rest',kind:'rest'}
 };
+Object.values(DEFAULT).forEach(day=>{
+  (day.ex||[]).concat(day.bonus||[]).forEach(x=>{if(x.type!=='cardio'){x.lo=8;x.hi=15;}});
+});
 const ORDER=['mon','tue','wed','thu','fri','sat','sun'];
 const WD=['sun','mon','tue','wed','thu','fri','sat'];
 
@@ -539,11 +577,37 @@ const num=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
 const fmt=n=>n.toLocaleString('en-US',{maximumFractionDigits:0});
 const e1rm=(w,r)=>w*(1+r/30);
 const dstr=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1900);}
+let toastTimer=null,undoAction=null;
+function toast(m){
+  clearTimeout(toastTimer);
+  $('#toastundo').hidden=true;undoAction=null;
+  const t=$('#toast');$('#toasttext').textContent=m;t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),1900);
+}
+function toastUndo(m,action){
+  clearTimeout(toastTimer);
+  undoAction=action;
+  const t=$('#toast');$('#toasttext').textContent=m;
+  $('#toastundo').hidden=false;
+  t.classList.add('show');
+  toastTimer=setTimeout(()=>{t.classList.remove('show');$('#toastundo').hidden=true;undoAction=null;},5000);
+}
+$('#toastundo').onclick=()=>{
+  if(undoAction)undoAction();
+  clearTimeout(toastTimer);
+  $('#toast').classList.remove('show');$('#toastundo').hidden=true;undoAction=null;
+};
 function plan(){return S.program[dayKey];}
 function mainEx(){return plan().ex||[];}
 function bonusEx(){return plan().bonus||[];}
 function getAdhoc(){if(!S.adhoc)S.adhoc={};if(!S.adhoc[dayKey])S.adhoc[dayKey]=[];return S.adhoc[dayKey];}
+function getCollapsed(){if(!S.collapsed)S.collapsed={};if(!S.collapsed[dayKey])S.collapsed[dayKey]=[];return S.collapsed[dayKey];}
+function toggleCollapse(id){
+  const c=getCollapsed();
+  const i=c.indexOf(id);
+  if(i>-1)c.splice(i,1);else c.push(id);
+  persist();
+}
 function allEx(){return mainEx().concat(bonusEx()).concat(getAdhoc());}
 function isRest(){return plan().kind==='rest';}
 
@@ -711,6 +775,7 @@ const LIBRARY=[
 ['Standing calf raise','Calves','Machine',60,12,15],
 ['Seated calf raise','Calves','Machine',60,15,20]
 ];
+LIBRARY.forEach(r=>{r[4]=8;r[5]=15;});
 const GROUPS=[...new Set(LIBRARY.map(r=>r[1]))];
 function defRest(x){return x.rest||180;}
 const REST_STEPS=[45,60,75,90,120,150,180];
@@ -805,6 +870,39 @@ function blip(freq){
     o.start();o.stop(audioCtx.currentTime+.09);
   }catch(e){}
 }
+/* Original ambient drone — not the show's score, a low synthesized hum in a similar register */
+let ambient=null;
+function startAmbient(){
+  if(!S.ambient||ambient)return;
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const master=audioCtx.createGain();master.gain.value=0;
+    master.connect(audioCtx.destination);
+    master.gain.linearRampToValueAtTime(.028,audioCtx.currentTime+2.5);
+    const oscs=[];
+    [55,55.5,110.2].forEach((f,i)=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.type='sine';o.frequency.value=f;
+      g.gain.value=i===2?.35:.7;
+      o.connect(g);g.connect(master);o.start();
+      oscs.push(o);
+    });
+    const lfo=audioCtx.createOscillator(),lfoGain=audioCtx.createGain();
+    lfo.frequency.value=.06;lfoGain.gain.value=.012;
+    lfo.connect(lfoGain);lfoGain.connect(master.gain);lfo.start();
+    ambient={master,oscs,lfo};
+  }catch(e){}
+}
+function stopAmbient(){
+  if(!ambient)return;
+  try{
+    const{master,oscs,lfo}=ambient;
+    master.gain.linearRampToValueAtTime(0,audioCtx.currentTime+.8);
+    setTimeout(()=>{oscs.forEach(o=>{try{o.stop();}catch(e){}});try{lfo.stop();}catch(e){}},900);
+  }catch(e){}
+  ambient=null;
+}
+$('#helpbtn').onclick=openLegend;
 $('#sevbtn').onclick=()=>{
   const on=document.body.classList.toggle('severed');
   $('#sevbtn').setAttribute('aria-pressed',on);
@@ -875,55 +973,90 @@ function exCard(x,isBonus){
   const up=shouldAddWeight(x);
   const dropping=x.type!=='cardio'&&repTrend(x.name)==='down';
   const complete=exComplete(x);
-  const kind=isBonus==='adhoc'?'adhoc':(isBonus?'bonus':'ex');
-  let dots='';
-  for(let i=0;i<x.sets;i++){
-    const on=!!(rows[i]&&rows[i].on);
-    dots+=`<button class="dot" aria-pressed="${on}" data-tog="${x.id}" data-i="${i}" aria-label="Set ${i+1}">${on?'✓':i+1}</button>`;
+  let isPR=false;
+  if(x.type!=='cardio'){
+    const rawLast=lastFor(x.name);
+    const best=bestFor(x.name);
+    if(rawLast&&best){
+      let lastBestE=0;
+      rawLast.sets.forEach(s=>{if(s.w&&s.r){const lb=toLb(s.w,rawLast.unit||'lb');const v=e1rm(lb,s.r);if(v>lastBestE)lastBestE=v;}});
+      isPR=lastBestE>0&&Math.abs(lastBestE-best.e)<0.05;
+    }
   }
+  const kind=isBonus==='adhoc'?'adhoc':(isBonus?'bonus':'ex');
   let sets='';
   for(let i=0;i<x.sets;i++){
-    const cur=rows[i]||{w:'',r:'',warm:false,on:false};
+    const cur=rows[i]||{w:'',r:'',rir:'',warm:false,on:false};
     const lp=last&&last.sets[i]?last.sets[i]:null;
     if(x.type==='cardio'){
       sets+=`<div class="setrow${cur.on?' on':''}">
-        <div class="setno">—</div>
-        <div class="field"><input class="sens" inputmode="decimal" placeholder="${x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>min</label></div>
-        <div class="field"><input class="sens" inputmode="decimal" placeholder="3.0" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w"><label>mph</label></div>
-        <div class="last sens">${lp?`<b>${esc(String(lp.r))}</b>m`:'—'}</div>
+        <div class="setmain cardio3">
+          <button class="setno" aria-pressed="${cur.on}" data-tog="${x.id}" data-i="${i}" aria-label="Log cardio set">${cur.on?'✓':'●'}</button>
+          <div class="field"><input class="sens" inputmode="decimal" placeholder="${x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>min</label></div>
+          <div class="field"><input class="sens" inputmode="decimal" placeholder="3.0" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w"><label>mph</label></div>
+        </div>
+        <div class="setmeta"><span class="lastref">${lp?`Last ${esc(String(lp.r))} min`:'First time'}</span></div>
       </div>`;
     }else{
       const tw=targetWeight(x,i);
-      sets+=`<div class="setrow${cur.on?' on':''}">
-        <button class="setno${cur.warm?' warm':''}" data-warmtoggle="${x.id}" data-i="${i}" aria-label="Mark set ${i+1} as warm-up">${cur.warm?'W':i+1}</button>
-        <div class="field"><input class="sens" inputmode="decimal" placeholder="${tw?tidy(tw):'0'}" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w"><button class="u" data-unit="${x.id}" aria-label="Switch units">${U}</button></div>
-        <div class="field"><input class="sens" inputmode="numeric" placeholder="${lp&&lp.r?lp.r:x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>reps</label></div>
-        <div class="field rir"><input class="sens" inputmode="numeric" placeholder="—" maxlength="1" value="${esc(cur.rir)}" data-ex="${x.id}" data-i="${i}" data-f="rir"><label>rir</label></div>
-        <div class="last sens">${lp&&lp.w?`<b>${tidy(lp.w)}</b>×${lp.r}`:'NEW'}</div>
+      sets+=`<div class="setrow${cur.on?' on':''}${cur.warm?' iswarm':''}">
+        <div class="setmain">
+          <button class="setno" aria-pressed="${cur.on}" data-tog="${x.id}" data-i="${i}" aria-label="Set ${i+1}${cur.on?', complete':''}">${cur.on?'✓':i+1}</button>
+          <div class="field weightfield">
+            <button class="step" data-stepdir="-1" data-ex="${x.id}" data-i="${i}" aria-label="Decrease weight">−</button>
+            <input class="sens" inputmode="decimal" placeholder="${tw?tidy(tw):'0'}" value="${esc(cur.w)}" data-ex="${x.id}" data-i="${i}" data-f="w">
+            <button class="step" data-stepdir="1" data-ex="${x.id}" data-i="${i}" aria-label="Increase weight">+</button>
+            <span class="ulabel">${U}</span>
+          </div>
+          <div class="field"><input class="sens" inputmode="numeric" placeholder="${lp&&lp.r?lp.r:x.lo}" value="${esc(cur.r)}" data-ex="${x.id}" data-i="${i}" data-f="r"><label>reps</label></div>
+        </div>
+        <div class="setmeta">
+          <span class="lastref">${lp&&lp.w?`Last ${tidy(lp.w)}×${lp.r}`:'First time'}</span>
+          <div class="metabtns">
+            <button class="warmchip" data-pickweight="${x.id}" data-i="${i}">Pick weight</button>
+            <button class="warmchip${cur.warm?' active':''}" data-warmtoggle="${x.id}" data-i="${i}">${cur.warm?'Warm-up ✓':'Mark warm-up'}</button>
+          </div>
+        </div>
       </div>`;
     }
   }
-  return `<div class="card${complete?' complete':''}${isBonus?' bonus':''}" data-card="${x.id}">
+  const collapsed=getCollapsed().includes(x.id);
+  return `<div class="card${complete?' complete':''}${isBonus?' bonus':''}${collapsed?' collapsed':''}" data-card="${x.id}" data-kind="${kind}">
     <div class="exhead">
+      <button class="grip" data-grip="${x.id}" aria-label="Drag to reorder">⠿</button>
       <div style="flex:1;min-width:0">
         <input class="exname" value="${esc(x.name)}" data-rename="${x.id}" aria-label="Exercise name">
-        <div class="meta">${x.type==='cardio'?x.lo+' min steady':x.sets+' × '+x.lo+(x.hi>x.lo?'–'+x.hi:'')+' reps'}${last?' · last '+esc(last.date.slice(5)):''}${kind==='adhoc'?' · off-script':''}</div>
+        <button class="meta" data-collapse="${x.id}" aria-label="Collapse exercise">${x.type==='cardio'?x.lo+' min steady':x.sets+' × '+x.lo+(x.hi>x.lo?'–'+x.hi:'')+' reps'}${last?' · last '+esc(last.date.slice(5)):''}${kind==='adhoc'?' · off-script':''}<span class="collapseicon">${collapsed?'▸':'▾'}</span></button>
       </div>
-      ${complete?'<span class="tag done">Refined</span>':(up?`<span class="tag up">Load +${tidy(loadStep(x))}</span>`:(dropping?'<span class="tag warn2">Reps slipping</span>':''))}
-      <button class="kebab" data-trend="${esc(x.name)}" aria-label="View trend">↗</button>
-      <button class="kebab" data-del="${x.id}" aria-label="Remove">×</button>
+      ${complete?'<span class="tag done">Refined</span>':(up?`<span class="tag up">Load +${tidy(loadStep(x))}</span>`:(dropping?'<span class="tag warn2">Reps slipping</span>':(isPR?'<span class="tag pr">★ PR</span>':'')))}
+      <button class="kebab" data-actions="${x.id}" aria-label="More actions">⋯</button>
     </div>
-    <div class="dots">${dots}</div>
-    ${sets}
-    ${x.type==='cardio'?'':`<div class="rowtools"><button class="mini" data-addset="${x.id}">+ set</button><button class="mini" data-rmset="${x.id}">− set</button><button class="mini" data-unit="${x.id}">${U==='lb'?'→ kg':'→ lb'}</button><button class="mini" data-rest="${x.id}">rest ${defRest(x)}s</button><button class="mini" data-up="${x.id}">↑</button><button class="mini" data-down="${x.id}">↓</button></div>`}
+    <div class="cardbody">
+      ${sets}
+      ${x.type==='cardio'?'':`<div class="rowtools"><button class="mini" data-addset="${x.id}">+ set</button><button class="mini" data-rmset="${x.id}">− set</button><button class="mini" data-unit="${x.id}">${U==='lb'?'→ kg':'→ lb'}</button><button class="mini" data-rest="${x.id}">rest ${defRest(x)}s</button><button class="mini" data-copylast="${x.id}">Copy last set</button><button class="mini" data-moveday="${x.id}">Move day</button></div>`}
+    </div>
   </div>`;
 }
 
+function jumpStrip(){
+  const list=mainEx();
+  if(list.length<2)return '';
+  return `<div class="jumpstrip">${list.map(x=>{
+    const c=exComplete(x);
+    return `<button class="jumppill${c?' done':''}" data-jump="${x.id}">${doneCount(x)}/${x.sets}</button>`;
+  }).join('')}</div>`;
+}
 function renderLog(){
   if(isRest()){renderRestDay();updateDock();return;}
   const {done,total}=counts();
   if(total>0&&done===total&&!forceEdit){renderComplete();return;}
-  let h=mainEx().map(x=>exCard(x,false)).join('');
+  let h=`<div class="quickadd">
+    <button class="mini" id="addex">+ Exercise</button>
+    <button class="mini" id="addbonus">+ Bonus</button>
+    <button class="mini" id="addadhoc">+ Off-script</button>
+  </div>`;
+  h+=jumpStrip();
+  h+=mainEx().map(x=>exCard(x,false)).join('');
   h+=`<div class="blockhead"><div class="t">Overtime contingency · optional</div><div class="r"></div></div>`;
   h+=bonusEx().map(x=>exCard(x,true)).join('');
   const adhoc=getAdhoc();
@@ -932,9 +1065,6 @@ function renderLog(){
     h+=adhoc.map(x=>exCard(x,'adhoc')).join('');
   }
   h+=`<div class="foot">
-    <button class="mini" id="addex">+ Exercise</button>
-    <button class="mini" id="addbonus">+ Bonus</button>
-    <button class="mini" id="addadhoc">+ Off-script</button>
     <button class="mini" id="clear">Reset day</button>
     <button class="mini" id="export">Export</button>
   </div>
@@ -951,11 +1081,47 @@ function renderLog(){
   wireLog();updateDock();
 }
 
+const advanceTimers=new WeakMap();
+function scheduleAdvance(inp){
+  clearTimeout(advanceTimers.get(inp));
+  const t=setTimeout(()=>{
+    if(document.activeElement!==inp||inp.value==='')return;
+    const all=[...document.querySelectorAll('#view input.sens')];
+    const i=all.indexOf(inp);
+    if(i>-1&&i<all.length-1){
+      all[i+1].focus();
+      if(all[i+1].select)all[i+1].select();
+    }
+  },650);
+  advanceTimers.set(inp,t);
+}
+function scheduleAutoComplete(inp){
+  clearTimeout(advanceTimers.get(inp));
+  const t=setTimeout(()=>{
+    if(document.activeElement!==inp||inp.value==='')return;
+    const exId=inp.dataset.ex,i=+inp.dataset.i;
+    const x=allEx().find(a=>a.id===exId);
+    if(!x)return;
+    const row=rowOf(exId,i);
+    if(row.on||!row.w||!row.r)return;
+    const nowOn=toggleSet(x,i);
+    blip(nowOn?720:420);
+    if(nowOn&&x.type!=='cardio')startRest(defRest(x));
+    const c=counts();
+    if(c.total>0&&c.done===c.total&&!forceEdit){render();return;}
+    renderLog();
+    const fresh=$('#view').querySelector(`[data-tog="${exId}"][data-i="${i}"]`);
+    if(fresh){fresh.classList.add('pulse');setTimeout(()=>fresh.classList.remove('pulse'),240);}
+    const nextWeight=$('#view').querySelector(`input[data-ex="${exId}"][data-i="${i+1}"][data-f="w"]`);
+    if(nextWeight){nextWeight.focus();if(nextWeight.select)nextWeight.select();}
+  },650);
+  advanceTimers.set(inp,t);
+}
 function wireLog(){
   const list=allEx();
   const find=id=>list.find(a=>a.id===id);
   $('#view').querySelectorAll('[data-tog]').forEach(b=>b.onclick=()=>{
-    const x=find(b.dataset.tog);const i=+b.dataset.i;
+    const x=find(b.dataset.tog);const i=+b.dataset.i;const exId=b.dataset.tog;
     const nowOn=toggleSet(x,i);
     blip(nowOn?720:420);
     if(nowOn&&x.type!=='cardio')startRest(defRest(x));
@@ -963,13 +1129,23 @@ function wireLog(){
     const c=counts();
     if(c.total>0&&c.done===c.total&&!forceEdit){render();return;}
     renderLog();
+    const fresh=$('#view').querySelector(`[data-tog="${exId}"][data-i="${i}"]`);
+    if(fresh){fresh.classList.add('pulse');setTimeout(()=>fresh.classList.remove('pulse'),240);}
   });
   $('#view').querySelectorAll('[data-warmtoggle]').forEach(b=>b.onclick=()=>{
     toggleWarm(b.dataset.warmtoggle,+b.dataset.i);renderLog();});
+  $('#view').querySelectorAll('[data-pickweight]').forEach(b=>b.onclick=()=>openWeightPicker(b.dataset.pickweight,+b.dataset.i));
+  $('#view').querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
+    const card=$('#view').querySelector(`[data-card="${b.dataset.jump}"]`);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  });
   $('#view').querySelectorAll('input[data-ex]').forEach(inp=>{
     inp.addEventListener('input',e=>{
       setVal(e.target.dataset.ex,+e.target.dataset.i,e.target.dataset.f,e.target.value);
       updateDock();
+      const owner=allEx().find(a=>a.id===e.target.dataset.ex);
+      if(e.target.dataset.f==='r'&&owner&&owner.type!=='cardio')scheduleAutoComplete(e.target);
+      else scheduleAdvance(e.target);
     });
   });
   $('#view').querySelectorAll('input[data-rename]').forEach(inp=>{
@@ -991,13 +1167,40 @@ function wireLog(){
   });
   $('#view').querySelectorAll('[data-addset]').forEach(b=>b.onclick=()=>{const x=find(b.dataset.addset);x.sets++;persist();render();});
   $('#view').querySelectorAll('[data-rmset]').forEach(b=>b.onclick=()=>{const x=find(b.dataset.rmset);if(x.sets>1)x.sets--;persist();render();});
-  $('#view').querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{moveExercise(b.dataset.up,-1);});
-  $('#view').querySelectorAll('[data-down]').forEach(b=>b.onclick=()=>{moveExercise(b.dataset.down,1);});
-  $('#view').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
-    const x=find(b.dataset.del);if(!confirm('Remove '+x.name+'?'))return;
-    ['ex','bonus'].forEach(k=>{const arr=plan()[k]||[];const i=arr.findIndex(a=>a.id===x.id);if(i>-1)arr.splice(i,1);});
-    const adh=getAdhoc();const ai=adh.findIndex(a=>a.id===x.id);if(ai>-1)adh.splice(ai,1);
-    persist();render();});
+  $('#view').querySelectorAll('[data-moveday]').forEach(b=>b.onclick=()=>openMoveSheet(b.dataset.moveday));
+  $('#view').querySelectorAll('[data-swap]').forEach(b=>b.onclick=()=>openSwapSheet(find(b.dataset.swap)));
+  $('#view').querySelectorAll('[data-stepdir]').forEach(b=>b.onclick=()=>{
+    const exId=b.dataset.ex,i=+b.dataset.i,dir=+b.dataset.stepdir;
+    const x=find(exId);
+    const row=rowOf(exId,i);
+    const cur=num(row.w)||num(targetWeight(x,i))||0;
+    const next=Math.max(0,Math.round((cur+dir*loadStep(x))*2)/2);
+    setVal(exId,i,'w',tidy(next));
+    const inp=$('#view').querySelector(`input[data-ex="${exId}"][data-i="${i}"][data-f="w"]`);
+    if(inp)inp.value=tidy(next);
+    updateDock();
+  });
+  $('#view').querySelectorAll('[data-copylast]').forEach(b=>b.onclick=()=>{
+    const exId=b.dataset.copylast;
+    const x=find(exId);
+    const d=getDraft();
+    const rows=d[exId]||[];
+    let source=null;
+    for(let i=x.sets-1;i>=0;i--){if(rows[i]&&rows[i].on){source=rows[i];break;}}
+    if(!source){toast('No completed set yet to copy');return;}
+    let targetIdx=-1;
+    for(let i=0;i<x.sets;i++){if(!(rows[i]&&rows[i].on)){targetIdx=i;break;}}
+    if(targetIdx<0){toast('All sets already logged');return;}
+    const row=rowOf(exId,targetIdx);
+    row.w=source.w;row.r=source.r;row.rir=source.rir;
+    persist();renderLog();
+    toast('Copied into set '+(targetIdx+1));
+  });
+  $('#view').querySelectorAll('[data-collapse]').forEach(b=>b.onclick=()=>{
+    toggleCollapse(b.dataset.collapse);renderLog();
+  });
+  wireDrag();
+  $('#view').querySelectorAll('[data-actions]').forEach(b=>b.onclick=()=>openActionsSheet(find(b.dataset.actions)));
   $('#view').querySelectorAll('[data-rest]').forEach(b=>b.onclick=()=>{
     const x=find(b.dataset.rest);
     const i=REST_STEPS.indexOf(defRest(x));
@@ -1012,6 +1215,152 @@ function wireLog(){
     try{await navigator.clipboard.writeText(txt);toast('Copied');}
     catch(e){const w=window.open('','_blank');if(w)w.document.write('<pre>'+esc(txt)+'</pre>');else toast('Copy blocked');}
   };
+}
+function wireDrag(){
+  document.querySelectorAll('#view [data-grip]').forEach(grip=>{
+    grip.addEventListener('pointerdown',e=>{
+      e.preventDefault();
+      const card=grip.closest('.card');
+      const kind=card.dataset.kind;
+      let siblings=[...document.querySelectorAll(`#view .card[data-kind="${kind}"]`)];
+      const startY=e.clientY;
+      let baseTop=card.getBoundingClientRect().top;
+      card.classList.add('dragging');
+      try{grip.setPointerCapture(e.pointerId);}catch(err){}
+      function onMove(ev){
+        const dy=ev.clientY-startY;
+        card.style.transform=`translateY(${dy}px)`;
+        const midY=baseTop+card.offsetHeight/2+dy;
+        const idx=siblings.indexOf(card);
+        const next=siblings[idx+1];
+        if(next){
+          const r=next.getBoundingClientRect();
+          if(midY>r.top+r.height/2){
+            next.parentNode.insertBefore(card,next.nextSibling);
+            siblings.splice(idx,1);siblings.splice(idx+1,0,card);
+            baseTop=card.getBoundingClientRect().top-dy;
+          }
+        }
+        const prev=siblings[siblings.indexOf(card)-1];
+        if(prev){
+          const r=prev.getBoundingClientRect();
+          if(midY<r.top+r.height/2){
+            prev.parentNode.insertBefore(card,prev);
+            const i=siblings.indexOf(card);siblings.splice(i,1);
+            const j=siblings.indexOf(prev);siblings.splice(j,0,card);
+            baseTop=card.getBoundingClientRect().top-dy;
+          }
+        }
+      }
+      function onUp(){
+        card.classList.remove('dragging');
+        card.style.transform='';
+        document.removeEventListener('pointermove',onMove);
+        document.removeEventListener('pointerup',onUp);
+        const ids=[...document.querySelectorAll(`#view .card[data-kind="${kind}"]`)].map(c=>c.dataset.card);
+        commitOrder(kind,ids);
+      }
+      document.addEventListener('pointermove',onMove);
+      document.addEventListener('pointerup',onUp,{once:true});
+    },{passive:false});
+  });
+}
+function commitOrder(kind,ids){
+  const arr=kind==='adhoc'?getAdhoc():(plan()[kind]=plan()[kind]||[]);
+  const map={};arr.forEach(x=>map[x.id]=x);
+  const reordered=ids.map(id=>map[id]).filter(Boolean);
+  if(kind==='adhoc')S.adhoc[dayKey]=reordered;else plan()[kind]=reordered;
+  persist();render();
+}
+function deleteExercise(x){
+  let removedFrom=null,removedIndex=-1;
+  for(const k of['ex','bonus']){
+    const arr=plan()[k]||[];
+    const i=arr.findIndex(a=>a.id===x.id);
+    if(i>-1){removedFrom=k;removedIndex=i;arr.splice(i,1);break;}
+  }
+  if(!removedFrom){
+    const adh=getAdhoc();
+    const i=adh.findIndex(a=>a.id===x.id);
+    if(i>-1){removedFrom='adhoc';removedIndex=i;adh.splice(i,1);}
+  }
+  persist();render();
+  if(removedFrom){
+    toastUndo('Removed '+x.name,()=>{
+      const arr=removedFrom==='adhoc'?getAdhoc():(plan()[removedFrom]=plan()[removedFrom]||[]);
+      arr.splice(removedIndex,0,x);
+      persist();render();
+    });
+  }
+}
+function openActionsSheet(x){
+  if(!x)return;
+  $('#sheettitle').textContent=x.name;
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  let html='';
+  if(x.type!=='cardio')html+=`<button class="libitem" data-act="swap"><span><span class="nm">Swap exercise</span><span class="sub">Replace with something from the same muscle group</span></span><span class="plus">⇄</span></button>`;
+  html+=`<button class="libitem" data-act="trend"><span><span class="nm">View trend</span><span class="sub">Jump to this exercise in Trends</span></span><span class="plus">↗</span></button>`;
+  html+=`<button class="libitem" data-act="del"><span><span class="nm">Remove from today</span><span class="sub">Can undo right after</span></span><span class="plus">×</span></button>`;
+  $('#liblist').innerHTML=html;
+  $('#liblist').querySelector('[data-act="swap"]')?.addEventListener('click',()=>{closeLibrary();openSwapSheet(x);});
+  $('#liblist').querySelector('[data-act="trend"]').addEventListener('click',()=>{closeLibrary();progEx=x.name;tab='prog';render();});
+  $('#liblist').querySelector('[data-act="del"]').addEventListener('click',()=>{closeLibrary();deleteExercise(x);});
+  $('#veil').hidden=false;
+}
+function weightOptions(x){
+  const u=unitOf(x);
+  const isCurl=groupOf(x.name)==='Biceps';
+  const step=u==='kg'?2.5:5;
+  const lo=step;
+  const hi=u==='kg'?(isCurl?40:120):(isCurl?90:250);
+  const opts=[];
+  for(let v=lo;v<=hi;v+=step)opts.push(v);
+  return opts;
+}
+function openWeightPicker(exId,i){
+  const x=allEx().find(a=>a.id===exId);
+  if(!x)return;
+  const u=unitOf(x);
+  const isCurl=groupOf(x.name)==='Biceps';
+  $('#sheettitle').textContent='Pick weight — '+u+(isCurl?' · curl range':' · machine range');
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=`<div class="wchipgrid">${weightOptions(x).map(v=>`<button class="wchip" data-wval="${v}">${tidy(v)}</button>`).join('')}</div>`;
+  $('#liblist').querySelectorAll('[data-wval]').forEach(btn=>{
+    btn.onclick=()=>{
+      setVal(exId,i,'w',btn.dataset.wval);
+      closeLibrary();
+      renderLog();
+    };
+  });
+  $('#veil').hidden=false;
+}
+function openSwapSheet(x){
+  if(!x)return;
+  const grp=groupOf(x.name);
+  const options=LIBRARY.filter(r=>r[1]===grp&&r[0].toLowerCase()!==x.name.toLowerCase());
+  $('#sheettitle').textContent='Swap exercise';
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=options.length?options.map(r=>
+    `<button class="libitem" data-swapto="${esc(r[0])}"><span><span class="nm">${esc(r[0])}</span><span class="sub">${esc(r[2])} · ${esc(r[1])} · ${r[4]}–${r[5]} reps</span></span><span class="plus">⇄</span></button>`
+  ).join(''):`<div class="empty">No other ${esc(grp)} exercises in the library</div>`;
+  $('#liblist').querySelectorAll('[data-swapto]').forEach(btn=>{
+    btn.onclick=()=>{
+      const r=LIBRARY.find(l=>l[0]===btn.dataset.swapto);
+      if(!r)return;
+      const oldName=x.name;
+      x.name=r[0];x.lo=r[4];x.hi=r[5];x.rest=r[3];
+      const d=getDraft();if(d[x.id])delete d[x.id];
+      persist();closeLibrary();render();
+      toast('Swapped '+oldName+' → '+r[0]);
+    };
+  });
+  $('#veil').hidden=false;
 }
 function moveExercise(id,dir){
   for(const k of ['ex','bonus']){
@@ -1081,6 +1430,8 @@ $('#save').onclick=()=>{
     if(arr.length)entry.ex.push({name:x.name,type:x.type,unit:unitOf(x),sets:arr});
   });
   if(!entry.ex.length){toast('Nothing logged');return;}
+  S.fileCounter=(S.fileCounter||0)+1;
+  entry.fileNo=S.fileCounter;
   const note=(getNoteDraft()||'').trim();
   if(note)entry.note=note;
   const priorBests={};
@@ -1129,28 +1480,60 @@ function monthLabel(mk){
   const [y,m]=mk.split('-');
   return new Date(+y,+m-1,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
 }
+let archQ='',archFocused=false;
+function sessRow(s){
+  const rows2=s.ex.map(x=>{
+    const t=x.type==='cardio'?x.sets.map(k=>k.r+' min'+(k.w?' @ '+k.w:'')).join(', '):x.sets.map(k=>k.w+'×'+k.r+(k.rir!=null?'@'+k.rir+'rir':'')).join('  ')+' '+(x.unit||'lb');
+    return `<li>${esc(x.name)}<span>${esc(t)}</span></li>`;
+  }).join('');
+  return `<div class="sess">
+    <div class="sesshead"><div class="sessday">${esc(s.label)}${s.fileNo?` <span class="fileno mono">FILE #${String(s.fileNo).padStart(4,'0')}</span>`:''}</div>
+    <div class="sessmeta">${esc(dstr(new Date(s.date+'T12:00')))} · ${showVol(s.vol).toUpperCase()}</div></div>
+    <ul class="sesslist">${rows2}</ul>
+    ${s.note?`<div class="signote">${esc(s.note)}</div>`:''}
+    <div class="rowtools"><button class="mini" data-delsess="${s.id}">Delete</button></div></div>`;
+}
+function wireDelSess(){
+  $('#view').querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.delsess;
+    const idx=S.sessions.findIndex(x=>x.id===id);
+    if(idx<0)return;
+    const removed=S.sessions[idx];
+    S.sessions.splice(idx,1);
+    persist();renderHistory();
+    toastUndo('Session deleted',()=>{
+      S.sessions.splice(idx,0,removed);
+      persist();renderHistory();
+    });
+  });
+}
+function wireArchSearch(){
+  const inp=$('#archsearch');
+  if(!inp)return;
+  inp.addEventListener('input',e=>{archQ=e.target.value;renderHistory();});
+  inp.addEventListener('focus',()=>archFocused=true);
+  inp.addEventListener('blur',()=>archFocused=false);
+  if(archFocused){inp.focus();inp.setSelectionRange(inp.value.length,inp.value.length);}
+}
 function renderHistory(){
   if(!S.sessions.length){$('#view').innerHTML='<div class="empty">Archive empty<br>File a session to populate</div>';return;}
+  const searchBar=`<input class="srch archsearch" id="archsearch" placeholder="Search by exercise or note…" autocomplete="off" value="${esc(archQ)}">`;
+  const q=archQ.trim().toLowerCase();
+  if(q){
+    const hits=S.sessions.filter(s=>s.ex.some(x=>x.name.toLowerCase().includes(q))||(s.note&&s.note.toLowerCase().includes(q)));
+    $('#view').innerHTML=searchBar+(hits.length?[...hits].reverse().map(sessRow).join(''):'<div class="empty">No matches</div>');
+    wireArchSearch();wireDelSess();
+    return;
+  }
   const byMonth={};
   S.sessions.forEach(s=>{const mk=monthKey(s.date);(byMonth[mk]=byMonth[mk]||[]).push(s);});
   const months=Object.keys(byMonth).sort().reverse();
   if(!openFolders.size)openFolders.add(months[0]);
-  $('#view').innerHTML=months.map(mk=>{
+  $('#view').innerHTML=searchBar+months.map(mk=>{
     const list=byMonth[mk];
     const tonnage=list.reduce((a,s)=>a+s.vol,0);
     const isOpen=openFolders.has(mk);
-    const rows=[...list].reverse().map(s=>{
-      const rows2=s.ex.map(x=>{
-        const t=x.type==='cardio'?x.sets.map(k=>k.r+' min'+(k.w?' @ '+k.w:'')).join(', '):x.sets.map(k=>k.w+'×'+k.r+(k.rir!=null?'@'+k.rir+'rir':'')).join('  ')+' '+(x.unit||'lb');
-        return `<li>${esc(x.name)}<span>${esc(t)}</span></li>`;
-      }).join('');
-      return `<div class="sess">
-        <div class="sesshead"><div class="sessday">${esc(s.label)}</div>
-        <div class="sessmeta">${esc(dstr(new Date(s.date+'T12:00')))} · ${showVol(s.vol).toUpperCase()}</div></div>
-        <ul class="sesslist">${rows2}</ul>
-        ${s.note?`<div class="signote">${esc(s.note)}</div>`:''}
-        <div class="rowtools"><button class="mini" data-delsess="${s.id}">Delete</button></div></div>`;
-    }).join('');
+    const rows=[...list].reverse().map(sessRow).join('');
     return `<div class="folder">
       <button class="folderhead" data-fold="${mk}">
         <span class="foldericon">${isOpen?'▾':'▸'}</span>
@@ -1165,8 +1548,7 @@ function renderHistory(){
     if(openFolders.has(mk))openFolders.delete(mk);else openFolders.add(mk);
     renderHistory();
   });
-  $('#view').querySelectorAll('[data-delsess]').forEach(b=>b.onclick=()=>{
-    if(confirm('Delete this session?')){S.sessions=S.sessions.filter(x=>x.id!==b.dataset.delsess);persist();renderHistory();}});
+  wireArchSearch();wireDelSess();
 }
 
 /* ===================== trends ===================== */
@@ -1392,6 +1774,83 @@ function shouldAddWeightByName(name){
   }
   return false;
 }
+function openMoveSheet(exId){
+  $('#sheettitle').textContent='Move to day';
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=ORDER.map(k=>{
+    const p=S.program[k];
+    return `<button class="libitem"${k===dayKey?' disabled':''} data-moveto="${k}">
+      <span><span class="nm">${esc(p.day)} — ${esc(p.label)}</span><span class="sub">${k===dayKey?'current day':(p.kind==='rest'?'currently rest':'training day')}</span></span>
+      <span class="plus">${k===dayKey?'':'→'}</span>
+    </button>`;
+  }).join('');
+  $('#liblist').querySelectorAll('[data-moveto]').forEach(btn=>{
+    if(btn.disabled)return;
+    btn.onclick=()=>{
+      const targetKey=btn.dataset.moveto;
+      let moved=null;
+      for(const k of['ex','bonus']){
+        const arr=plan()[k]||[];
+        const i=arr.findIndex(a=>a.id===exId);
+        if(i>-1){moved=arr.splice(i,1)[0];break;}
+      }
+      if(!moved){
+        const adh=getAdhoc();
+        const i=adh.findIndex(a=>a.id===exId);
+        if(i>-1)moved=adh.splice(i,1)[0];
+      }
+      if(!moved)return;
+      const tp=S.program[targetKey];
+      if(tp.kind==='rest')tp.kind='train';
+      if(!tp.ex)tp.ex=[];
+      tp.ex.push(moved);
+      persist();closeLibrary();render();
+      toast('Moved to '+tp.day);
+    };
+  });
+  $('#veil').hidden=false;
+}
+const LEGEND=[
+  ['⠿','Grip','Press and drag to reorder exercises within their section.'],
+  ['Set number / ✓','Tap','Marks that set complete and starts the rest timer. The only control that does that.'],
+  ['Meta line under name','Tap','Collapses the exercise down to just its header. Tap again to reopen.'],
+  ['Mark warm-up','Chip','Excludes that set from tonnage, load progression, and history — for warm-up weight only.'],
+  ['⋯','Kebab','Opens swap, trend, and remove for that exercise.'],
+  ['⇄','Swap','Replace an exercise with another from the same muscle group.'],
+  ['Load +N','Tag','You hit the top of the rep range on every set last time — add weight this session.'],
+  ['Reps slipping','Tag','Reps have dropped two sessions in a row. The last weight jump was probably too big.'],
+  ['★ PR','Tag','Last session is still your all-time best on this exercise.'],
+  ['◑ Severed','Toggle','Blurs weights and totals until you tap them directly.']
+];
+function openLegend(){
+  $('#sheettitle').textContent='What these mean';
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=LEGEND.map(([sym,label,desc])=>
+    `<div class="legrow"><div class="legsym mono">${esc(sym)}</div><div><div class="legname">${esc(label)}</div><div class="legdesc">${esc(desc)}</div></div></div>`
+  ).join('');
+  $('#veil').hidden=false;
+}
+const HANDBOOK=[
+  ['Double progression','The mechanism behind everything. Same weight, add reps each session until every set hits the top of the rep range — then add weight and drop back to the bottom. That cycle is what "Load +N" is tracking for you.'],
+  ['e10RM vs e1RM','Both are projections of a max you never actually attempt. e10RM estimates what you could lift for 10 reps; e1RM extrapolates to a single rep. e10RM is the default here because you train in the 8–15 rep range — it stays close to what you actually do, instead of guessing far outside it.'],
+  ['Compliance score','Sets actually completed over sets scheduled, trailing 14 days. A performance-review framing for a simple adherence number.'],
+  ['Deload flag','Fires once you have gone 6+ weeks without a week where your tonnage dropped meaningfully below your own trailing average. Continuous overload without a lighter week is usually how the stuck list fills up.'],
+  ['Weekly volume bands','Sets per muscle group, trailing 7 days, checked against a commonly cited 8–20 sets/week range. A prompt to look closer, not a rule to hit exactly.'],
+  ['Warm-up sets','Marked sets that are excluded from tonnage, the load tag, and everything saved to history. They still start the rest timer.'],
+  ["Off-script","Exercises logged for one day only — they count in that day's history but never become a permanent part of the program."]
+];
+function openHandbook(){
+  $('#sheettitle').textContent='Handbook';
+  $('#libsearch').style.display='none';
+  $('#libchips').style.display='none';
+  $('#libcustom').style.display='none';
+  $('#liblist').innerHTML=HANDBOOK.map(([t,d])=>`<div class="hbentry"><div class="hbterm">${esc(t)}</div><div class="hbdesc">${esc(d)}</div></div>`).join('');
+  $('#veil').hidden=false;
+}
 function openMemo(){
   $('#sheettitle').textContent='Weekly memo';
   $('#libsearch').style.display='none';
@@ -1412,6 +1871,31 @@ function renderConfig(){
   const stale=!S.lastBackup||(Date.now()-new Date(S.lastBackup+'T12:00').getTime())>1209600000;
   const comp=complianceScore(14);
   $('#view').innerHTML=`
+  <div class="cfg">
+    <h3>Refiner identity</h3>
+    <p>This copy is local to this device only. Nothing here is shared with any other phone, so a family member adding this same URL to their own home screen gets a fully separate copy with their own name, program, and history.</p>
+    <div class="cfgrow">
+      <input class="dayname" id="refname" value="${esc(S.refinerName||'K. BORSADA')}" placeholder="Name shown on badge">
+      <button class="mini" id="savename">Save</button>
+    </div>
+  </div>
+
+  <div class="cfg">
+    <h3>Training program</h3>
+    <p>Switch any day between train and rest, or rename a day's label. Exercises on a day you switch to rest stay saved and come back if you switch it back.</p>
+    <div class="dayeditor">${ORDER.map(k=>{
+      const p=S.program[k];
+      return `<div class="dayrow">
+        <span class="dayabbr mono">${p.day}</span>
+        <input class="dayname" data-daylabel="${k}" value="${esc(p.label)}" placeholder="Label">
+        <div class="seg small">
+          <button data-daykind="${k}" data-val="train" aria-pressed="${p.kind==='train'}">Train</button>
+          <button data-daykind="${k}" data-val="rest" aria-pressed="${p.kind==='rest'}">Rest</button>
+        </div>
+      </div>`;
+    }).join('')}</div>
+  </div>
+
   <div class="cfg">
     <h3>Performance review · trailing 14 days</h3>
     <p>${comp.done} of ${comp.scheduled} scheduled working sets completed.</p>
@@ -1453,6 +1937,12 @@ function renderConfig(){
   </div>
 
   <div class="cfg">
+    <h3>Handbook</h3>
+    <p>What e10RM, compliance, and the rest of it actually mean.</p>
+    <button class="mini" id="openhandbook">Open handbook</button>
+  </div>
+
+  <div class="cfg">
     <h3>Strength metric</h3>
     <p>Charts and personal bests. e10RM is the load you could move for 10 reps, which sits inside the range you actually train. e1RM extrapolates to a single max you never attempt.</p>
     <div class="seg">
@@ -1479,12 +1969,44 @@ function renderConfig(){
     </div>
   </div>
 
+  <div class="cfg">
+    <h3>Ambient drone</h3>
+    <p>A low synthesized hum while the Today screen is open. Original, generated in-app — not the show's score. Off by default.</p>
+    <div class="seg">
+      <button data-ambient="off" aria-pressed="${!S.ambient}">Off</button>
+      <button data-ambient="on" aria-pressed="${!!S.ambient}">On</button>
+    </div>
+  </div>
+
   <div class="cfg danger">
     <h3>Danger zone</h3>
     <p>Export first if you want any of this back.</p>
     <button class="btn-danger" id="wipe">Delete all data</button>
   </div>`;
 
+  $('#view').querySelectorAll('[data-daylabel]').forEach(inp=>{
+    inp.addEventListener('change',e=>{
+      const k=e.target.dataset.daylabel;
+      S.program[k].label=e.target.value.trim()||S.program[k].label;
+      persist();renderConfig();
+    });
+  });
+  $('#view').querySelectorAll('[data-daykind]').forEach(b=>{
+    b.onclick=()=>{
+      const k=b.dataset.daykind,val=b.dataset.val;
+      const p=S.program[k];
+      if(val==='train'){p.kind='train';if(!p.ex)p.ex=[];if(!p.bonus)p.bonus=[];}
+      else{p.kind='rest';}
+      if(k===dayKey)forceEdit=false;
+      persist();renderConfig();
+      toast(p.day+' set to '+(val==='train'?'training':'rest'));
+    };
+  });
+  $('#savename').onclick=()=>{
+    const v=$('#refname').value.trim();
+    S.refinerName=v||'K. BORSADA';
+    persist();renderConfig();toast('Badge updated');
+  };
   $('#bwlog').onclick=()=>{
     const v=num($('#bwval').value);
     if(!v){toast('Enter a number');return;}
@@ -1498,6 +2020,7 @@ function renderConfig(){
   if(bwc)bwc.onclick=()=>{if(confirm('Clear the body weight log?')){S.bw=[];persist();renderConfig();}};
   $('#doexport').onclick=exportFile;
   $('#openmemo').onclick=openMemo;
+  $('#openhandbook').onclick=openHandbook;
   $('#doimport').onclick=()=>$('#importfile').click();
   $('#docopy').onclick=async()=>{
     try{await navigator.clipboard.writeText(snapshot());S.lastBackup=todayISO();persist();toast('Copied');renderConfig();}
@@ -1506,6 +2029,10 @@ function renderConfig(){
   $('#view').querySelectorAll('[data-metric]').forEach(b=>b.onclick=()=>{S.metric=b.dataset.metric;persist();renderConfig();});
   $('#view').querySelectorAll('[data-disp]').forEach(b=>b.onclick=()=>{S.disp=b.dataset.disp;persist();renderConfig();});
   $('#view').querySelectorAll('[data-sound]').forEach(b=>b.onclick=()=>{S.sound=b.dataset.sound==='on';persist();renderConfig();if(S.sound)blip(620);});
+  $('#view').querySelectorAll('[data-ambient]').forEach(b=>b.onclick=()=>{
+    S.ambient=b.dataset.ambient==='on';persist();renderConfig();
+    if(S.ambient&&tab==='log')startAmbient();else stopAmbient();
+  });
   $('#wipe').onclick=()=>{
     if(!confirm('Delete every session, every setting, everything?'))return;
     if(!confirm('Last chance. This cannot be undone.'))return;
@@ -1531,16 +2058,27 @@ const GATE_LINES=[
   'EVERY BIN FILLED IS A DEBT PAID TO TOMORROW.',
   'YOU WERE HIRED FOR YOUR CONSISTENCY. PROVE IT AGAIN.'
 ];
+function refinerRank(n){
+  if(n>=120)return'DEPARTMENT REFINER';
+  if(n>=60)return'LEAD REFINER';
+  if(n>=30)return'SENIOR REFINER';
+  if(n>=15)return'REFINER III';
+  if(n>=5)return'REFINER II';
+  return'REFINER I';
+}
 function renderGate(){
   $('#badgeid').textContent=badgeId();
+  const nm=S.refinerName||'K. BORSADA';
+  $('#badgename').textContent=nm;
   const hr=new Date().getHours();
   const seg=hr<5?'NIGHT SHIFT':hr<12?'MORNING TERMINAL SESSION':hr<17?'MIDDAY TERMINAL SESSION':hr<21?'EVENING TERMINAL SESSION':'LATE TERMINAL SESSION';
-  $('#gateauth').textContent=seg+' · WELCOME BACK, K. BORSADA';
+  $('#gateauth').textContent=seg+' · WELCOME BACK, '+nm;
   const p=plan();
   $('#gatefile').textContent=p.kind==='rest'
     ? 'TODAY — RECOVERY, NO REFINEMENT SCHEDULED'
     : "TODAY'S FILE — "+p.day.toUpperCase()+' · '+p.label.toUpperCase();
   const files=S.sessions.length;
+  $('#badgerank').textContent=refinerRank(files);
   const tonnage=S.sessions.reduce((a,s)=>a+s.vol,0);
   let streak=0;
   const days=new Set(S.sessions.map(s=>s.date));
@@ -1557,7 +2095,7 @@ function renderGate(){
     <div class="gs"><div class="n">${streak}</div><div class="l">Day streak</div></div>`;
   $('#gatequote').textContent=GATE_LINES[Math.floor(Math.random()*GATE_LINES.length)];
 }
-$('#gatebtn').onclick=()=>{$('#gate').hidden=true;};
+$('#gatebtn').onclick=()=>{$('#gate').hidden=true;if(S.ambient&&tab==='log')startAmbient();};
 
 /* ===================== router ===================== */
 function render(){
@@ -1576,40 +2114,29 @@ function render(){
   else renderConfig();
   fitPad();
 }
-$('#t-cfg').onclick=()=>{tab='cfg';render();};
-$('#t-log').onclick=()=>{tab='log';render();};
-$('#t-hist').onclick=()=>{tab='hist';render();};
-$('#t-prog').onclick=()=>{tab='prog';render();};
-
-/* ===================== elevator ===================== */
-function runElevator(){
-  return new Promise(resolve=>{
-    const el=$('#elevator');
-    const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reduced){el.hidden=true;resolve();return;}
-    const floors=['09','08','07','06','05','04','03','02','01','MD'];
-    let i=0;
-    const tick=()=>{
-      $('#elevfloor').textContent=floors[i];
-      i++;
-      if(i<floors.length){setTimeout(tick,105);}
-      else{
-        setTimeout(()=>{
-          el.classList.add('open');
-          setTimeout(()=>{el.hidden=true;resolve();},950);
-        },260);
-      }
-    };
-    tick();
-  });
-}
+$('#t-cfg').onclick=()=>{tab='cfg';render();stopAmbient();};
+$('#t-log').onclick=()=>{tab='log';render();if(S.ambient)startAmbient();};
+$('#t-hist').onclick=()=>{tab='hist';render();stopAmbient();};
+$('#t-prog').onclick=()=>{tab='prog';render();stopAmbient();};
 
 (async()=>{
   const saved=await load();
   if(saved&&saved.program)S=Object.assign({program:DEFAULT,sessions:[],draft:{}},saved);
+  if(!S.repRangeMigrated){
+    Object.values(S.program).forEach(day=>{
+      (day.ex||[]).concat(day.bonus||[]).forEach(x=>{if(x.type!=='cardio'){x.lo=8;x.hi=15;}});
+    });
+    S.repRangeMigrated=true;
+    persist();
+  }
+  if(S.sessions.some(s=>!s.fileNo)){
+    let n=S.fileCounter||0;
+    [...S.sessions].sort((a,b)=>a.date<b.date?-1:1).forEach(s=>{if(!s.fileNo)s.fileNo=++n;});
+    S.fileCounter=n;
+    persist();
+  }
   render();
   renderGate();
-  await runElevator();
 })();
 </script>
 </body>
