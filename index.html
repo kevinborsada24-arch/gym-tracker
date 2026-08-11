@@ -71,6 +71,10 @@ body.severed .sens:active{filter:blur(0)}
 .readout .pct{font-size:19px;color:var(--ink);letter-spacing:.06em}
 
 .days{display:flex;gap:5px;overflow-x:auto;padding:0 2px 10px;scrollbar-width:none}
+.exsearch{display:flex;gap:7px;margin-bottom:11px}
+.exsearch input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px 12px;font-size:14px;color:var(--ink)}
+.exsearch input:focus{outline:0;border-color:var(--cyan)}
+.exsearch .mini{flex:0 0 auto}
 .recallbtn{width:100%;background:var(--panel);border:1px solid var(--cyan);border-radius:4px;color:var(--cyan);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:12px;cursor:pointer;margin-bottom:11px}
 .recallbtn:active{background:var(--cyan);color:#03141C}
 .quickadd{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
@@ -154,8 +158,6 @@ main{padding-bottom:16px}
 .card.flash{animation:cardflash .75s ease-out}
 .lastref{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--faint);letter-spacing:.03em}
 .warmchip{background:none;border:1px solid var(--line-soft);border-radius:10px;padding:3px 9px;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);cursor:pointer}
-.warmchip.active{background:var(--amber,#F0B429);border-color:var(--amber,#F0B429);color:#1B1400;font-weight:700}
-.setrow.iswarm .setmain{opacity:.72}
 .rowtools{display:flex;gap:7px;margin-top:9px;flex-wrap:wrap}
 .mini{background:none;border:1px solid var(--line-soft);border-radius:2px;color:var(--dim);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;padding:5px 8px;cursor:pointer}
 .mini:hover{border-color:var(--cyan);color:var(--ink)}
@@ -507,7 +509,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 
 <script>
 /* ===================== storage ===================== */
-const BUILD='2026-08-11.1';
+const BUILD='2026-08-11.6';
 const KEY='refinement:v1';
 let mem=null;
 async function load(){
@@ -751,11 +753,10 @@ function getDraft(){if(!S.draft[dayKey])S.draft[dayKey]={};return S.draft[dayKey
 function rowOf(exId,i){
   const d=getDraft();
   if(!d[exId])d[exId]=[];
-  if(!d[exId][i])d[exId][i]={w:'',r:'',rir:'',warm:false,on:false};
+  if(!d[exId][i])d[exId][i]={w:'',r:'',rir:'',on:false};
   return d[exId][i];
 }
 function setVal(exId,i,f,v){rowOf(exId,i)[f]=v;persist();}
-function toggleWarm(exId,i){const row=rowOf(exId,i);const turningOn=!row.warm;row.warm=turningOn;persist();return turningOn;}
 function toggleSet(x,i){
   const row=rowOf(x.id,i);
   if(row.on){row.on=false;persist();return false;}
@@ -771,7 +772,7 @@ function toggleSet(x,i){
   }
   row.on=true;persist();return true;
 }
-function doneCount(x){const d=getDraft();return (d[x.id]||[]).filter((r,i)=>i<x.sets&&r&&r.on&&!r.warm).length;}
+function doneCount(x){const d=getDraft();return (d[x.id]||[]).filter((r,i)=>i<x.sets&&r&&r.on).length;}
 function bulkMarkExercise(x,markOn){
   let changed=0;
   for(let i=0;i<x.sets;i++){
@@ -796,9 +797,9 @@ function bulkMarkExercise(x,markOn){
   return changed;
 }
 function exComplete(x){return doneCount(x)>=x.sets;}
-function volume(){ // returns lb, excludes warm-up sets
+function volume(){ // returns lb
   const d=getDraft();let v=0;
-  allEx().forEach(x=>{if(x.type==='cardio')return;(d[x.id]||[]).forEach(r=>{if(r&&r.on&&!r.warm)v+=toLb(num(r.w),unitOf(x))*num(r.r);});});
+  allEx().forEach(x=>{if(x.type==='cardio')return;(d[x.id]||[]).forEach(r=>{if(r&&r.on)v+=toLb(num(r.w),unitOf(x))*num(r.r);});});
   return v;
 }
 function todayISO(){const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);}
@@ -1038,7 +1039,7 @@ function paintDays(){
     b.className='day'+(k===nowKey?' now':'')+(p.kind==='rest'?' rest':'')+(p.kind==='rest'?'':dayAccent(p.label));
     b.setAttribute('aria-selected',k===dayKey);
     b.innerHTML='<b>'+p.day+'</b>'+esc(p.label);
-    b.onclick=()=>{dayKey=k;forceEdit=false;completeNotified=false;render();};
+    b.onclick=()=>{dayKey=k;forceEdit=false;completeNotified=false;exSearchQ='';render();};
     box.appendChild(b);
   });
 }
@@ -1105,7 +1106,7 @@ function exCard(x,isBonus){
   const kind=isBonus==='adhoc'?'adhoc':(isBonus?'bonus':'ex');
   let sets='';
   for(let i=0;i<x.sets;i++){
-    const cur=rows[i]||{w:'',r:'',rir:'',warm:false,on:false};
+    const cur=rows[i]||{w:'',r:'',rir:'',on:false};
     const lp=last&&last.sets[i]?last.sets[i]:null;
     if(x.type==='cardio'){
       sets+=`<div class="setrow${cur.on?' on':''}">
@@ -1118,7 +1119,7 @@ function exCard(x,isBonus){
       </div>`;
     }else{
       const tw=targetWeight(x,i);
-      sets+=`<div class="setrow${cur.on?' on':''}${cur.warm?' iswarm':''}">
+      sets+=`<div class="setrow${cur.on?' on':''}">
         <div class="setmain">
           <button class="setno" aria-pressed="${cur.on}" data-tog="${x.id}" data-i="${i}" aria-label="Set ${i+1}${cur.on?', complete':''}">${cur.on?'✓':i+1}</button>
           <div class="field weightfield">
@@ -1131,10 +1132,7 @@ function exCard(x,isBonus){
         </div>
         <div class="setmeta">
           <span class="lastref">${lp&&lp.w?`Last ${tidy(lp.w)}×${lp.r}`:'First time'}</span>
-          <div class="metabtns">
-            <button class="warmchip" data-pickweight="${x.id}" data-i="${i}">Pick weight</button>
-            <button class="warmchip${cur.warm?' active':''}" data-warmtoggle="${x.id}" data-i="${i}">${cur.warm?'Warm-up ✓':'Mark warm-up'}</button>
-          </div>
+          <button class="warmchip" data-pickweight="${x.id}" data-i="${i}">Pick weight</button>
         </div>
       </div>`;
     }
@@ -1158,6 +1156,23 @@ function exCard(x,isBonus){
   </div>`;
 }
 
+function filterCards(q){
+  const query=q.trim().toLowerCase();
+  const visible=[];
+  $('#view').querySelectorAll('.card').forEach(card=>{
+    const nameInput=card.querySelector('.exname');
+    const name=nameInput?nameInput.value.toLowerCase():'';
+    const show=!query||name.includes(query);
+    card.style.display=show?'':'none';
+    if(show&&query)visible.push(card);
+  });
+  $('#view').querySelectorAll('.jumppill').forEach(p=>{
+    const id=p.dataset.jump;
+    const card=$('#view').querySelector(`[data-card="${id}"]`);
+    p.style.display=(card&&card.style.display==='none')?'none':'';
+  });
+  if(query&&visible.length===1)visible[0].scrollIntoView({behavior:'smooth',block:'start'});
+}
 function jumpStrip(){
   const list=mainEx();
   if(list.length<2)return '';
@@ -1166,11 +1181,16 @@ function jumpStrip(){
     return `<button class="jumppill${c?' done':''}" data-jump="${x.id}">${doneCount(x)}/${x.sets}</button>`;
   }).join('')}</div>`;
 }
+let exSearchQ='';
 function renderLog(){
   if(isRest()){renderRestDay();updateDock();return;}
   const {done,total}=counts();
   if(total>0&&done===total&&!forceEdit){renderComplete();return;}
-  let h=`<button class="recallbtn" id="recallfile">↺ Recall last file</button>
+  let h=`<div class="exsearch">
+    <input id="exfind" placeholder="Find an exercise…" autocomplete="off" value="${esc(exSearchQ)}">
+    <button class="mini" id="exfindclear">Clear</button>
+  </div>
+  <button class="recallbtn" id="recallfile">↺ Recall last file</button>
   <div class="quickadd">
     <button class="mini" id="addex">+ Exercise</button>
     <button class="mini" id="addbonus">+ Bonus</button>
@@ -1200,6 +1220,12 @@ function renderLog(){
   </div>`;
   $('#view').innerHTML=h;
   wireLog();updateDock();
+  const exfind=$('#exfind');
+  if(exfind){
+    if(exSearchQ)filterCards(exSearchQ);
+    exfind.addEventListener('input',e=>{exSearchQ=e.target.value;filterCards(exSearchQ);});
+    $('#exfindclear').onclick=()=>{exSearchQ='';exfind.value='';filterCards('');exfind.focus();};
+  }
 }
 
 const advanceTimers=new WeakMap();
@@ -1209,6 +1235,18 @@ function flashExerciseDone(x){
   blip(880);
   toast('Refined — '+x.name);
   notify('Exercise complete',x.name+' is done. Move on to the next one.');
+  setTimeout(()=>scrollToNextIncomplete(x.id),900);
+}
+function scrollToNextIncomplete(afterId){
+  const list=mainEx().concat(bonusEx());
+  const idx=list.findIndex(a=>a.id===afterId);
+  let next=null;
+  for(let i=idx+1;i<list.length;i++){if(!exComplete(list[i])){next=list[i];break;}}
+  if(!next){for(let i=0;i<list.length;i++){if(!exComplete(list[i])){next=list[i];break;}}}
+  if(next){
+    const card=$('#view').querySelector(`[data-card="${next.id}"]`);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  }
 }
 function scheduleAdvance(inp){
   clearTimeout(advanceTimers.get(inp));
@@ -1263,14 +1301,6 @@ function wireLog(){
     const fresh=$('#view').querySelector(`[data-tog="${exId}"][data-i="${i}"]`);
     if(fresh){fresh.classList.add('pulse');setTimeout(()=>fresh.classList.remove('pulse'),240);}
     if(!wasComplete&&exComplete(x))flashExerciseDone(x);
-  });
-  $('#view').querySelectorAll('[data-warmtoggle]').forEach(b=>b.onclick=()=>{
-    const turnedOn=toggleWarm(b.dataset.warmtoggle,+b.dataset.i);
-    if(turnedOn){
-      const x=find(b.dataset.warmtoggle);
-      if(x){x.sets++;persist();toast("Set added — warm-ups don't count toward your working sets");}
-    }
-    renderLog();
   });
   $('#view').querySelectorAll('[data-pickweight]').forEach(b=>b.onclick=()=>openWeightPicker(b.dataset.pickweight,+b.dataset.i));
   $('#view').querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
@@ -1569,7 +1599,7 @@ function todayGroupAverages(){
     if(x.type==='cardio')return;
     const g=groupOf(x.name);
     (d[x.id]||[]).forEach(r=>{
-      if(r&&r.on&&!r.warm&&r.w){
+      if(r&&r.on&&r.w){
         if(!sums[g])sums[g]={tot:0,n:0};
         sums[g].tot+=toLb(num(r.w),unitOf(x));
         sums[g].n++;
@@ -1600,7 +1630,7 @@ $('#save').onclick=()=>{
   const entry={id:uid(),date:fileDate(),dayKey,label:plan().day+' '+plan().label,ex:[],vol:volume()};
   allEx().forEach(x=>{
     const arr=[];
-    for(let i=0;i<x.sets;i++){const c=(d[x.id]||[])[i];if(c&&c.on&&!c.warm)arr.push({w:num(c.w),r:num(c.r),rir:c.rir!==''&&c.rir!=null?num(c.rir):null});}
+    for(let i=0;i<x.sets;i++){const c=(d[x.id]||[])[i];if(c&&c.on)arr.push({w:num(c.w),r:num(c.r),rir:c.rir!==''&&c.rir!=null?num(c.rir):null});}
     if(arr.length)entry.ex.push({name:x.name,type:x.type,unit:unitOf(x),sets:arr});
   });
   if(!entry.ex.length){toast('Nothing logged');return;}
@@ -2026,7 +2056,9 @@ const LEGEND=[
   ['⠿','Grip','Press and drag to reorder exercises within their section.'],
   ['Set number / ✓','Tap','Marks that set complete and starts the rest timer. The only control that does that.'],
   ['Meta line under name','Tap','Collapses the exercise down to just its header. Tap again to reopen.'],
-  ['Mark warm-up','Chip','Excludes that set from tonnage, load progression, and history — for warm-up weight only.'],
+  ['Circle by ⋯','Tap','Marks or unmarks the whole exercise complete at once, filling any blank sets.'],
+  ['Find an exercise','Search','Type a name to hide everything else. Narrows to one match and jumps straight to it.'],
+  ['Finishing an exercise','Auto','About a second after the last set, the screen scrolls itself to the next unfinished one.'],
   ['⋯','Kebab','Opens swap, trend, and remove for that exercise.'],
   ['⇄','Swap','Replace an exercise with another from the same muscle group.'],
   ['Load +N','Tag','You hit the top of the rep range on every set last time — add weight this session.'],
@@ -2050,7 +2082,6 @@ const HANDBOOK=[
   ['Compliance score','Sets actually completed over sets scheduled, trailing 14 days. A performance-review framing for a simple adherence number.'],
   ['Deload flag','Fires once you have gone 6+ weeks without a week where your tonnage dropped meaningfully below your own trailing average. Continuous overload without a lighter week is usually how the stuck list fills up.'],
   ['Weekly volume bands','Sets per muscle group, trailing 7 days, checked against a commonly cited 8–20 sets/week range. A prompt to look closer, not a rule to hit exactly.'],
-  ['Warm-up sets','Marked sets that are excluded from tonnage, the load tag, and everything saved to history. They still start the rest timer.'],
   ["Off-script","Exercises logged for one day only — they count in that day's history but never become a permanent part of the program."]
 ];
 function openHandbook(){
@@ -2333,6 +2364,23 @@ function refinerRank(n){
   if(n>=5)return'REFINER II';
   return'REFINER I';
 }
+function thisWeekProgress(){
+  const now=new Date();
+  const dow=now.getDay();
+  const start=new Date(now);start.setDate(now.getDate()-dow);
+  let scheduled=0,done=0;
+  for(let i=0;i<7;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);
+    const iso=new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10);
+    const wd=WD[d.getDay()];
+    const p=S.program[wd];
+    if(p.kind==='train'){
+      scheduled++;
+      if(S.sessions.some(s=>s.date===iso))done++;
+    }
+  }
+  return{done,scheduled};
+}
 function renderGate(){
   $('#badgeid').textContent=badgeId();
   const nm=S.refinerName||'K. BORSADA';
@@ -2346,7 +2394,7 @@ function renderGate(){
     : "TODAY'S FILE — "+p.day.toUpperCase()+' · '+p.label.toUpperCase();
   const files=S.sessions.length;
   $('#badgerank').textContent=refinerRank(files);
-  const tonnage=S.sessions.reduce((a,s)=>a+s.vol,0);
+  const week=thisWeekProgress();
   let streak=0;
   const days=new Set(S.sessions.map(s=>s.date));
   let cur=new Date();
@@ -2358,7 +2406,7 @@ function renderGate(){
   }
   $('#gatestats').innerHTML=`
     <div class="gs"><div class="n">${files}</div><div class="l">Files</div></div>
-    <div class="gs"><div class="n">${fmt(fromLb(tonnage,disp()))}</div><div class="l">Tonnage ${disp()}</div></div>
+    <div class="gs"><div class="n">${week.done}/${week.scheduled}</div><div class="l">This week</div></div>
     <div class="gs"><div class="n">${streak}</div><div class="l">Day streak</div></div>`;
   $('#gatequote').textContent=GATE_LINES[Math.floor(Math.random()*GATE_LINES.length)];
 }
