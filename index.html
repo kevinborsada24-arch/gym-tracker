@@ -98,7 +98,7 @@ main{padding-bottom:16px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;padding:11px 12px 12px;transition:border-color .3s,background .3s}
 .card.complete{border-color:var(--green);background:linear-gradient(rgba(63,224,165,.09),rgba(63,224,165,.03)),var(--panel)}
 .card.bonus{border-style:dashed;border-color:var(--line-soft)}
-.exhead{display:flex;align-items:flex-start;gap:8px;justify-content:space-between;position:sticky;top:var(--headerh);z-index:15;background:var(--panel);margin:-11px -12px 0;padding:11px 12px 8px;border-radius:var(--r) var(--r) 0 0}
+.exhead{display:flex;align-items:flex-start;gap:8px;justify-content:space-between;position:sticky;top:var(--headerh);z-index:15;background:var(--panel);padding-bottom:8px;margin-bottom:2px;border-bottom:1px solid var(--line-soft)}
 .grip{background:none;border:0;color:var(--faint);font-size:19px;line-height:1;cursor:grab;touch-action:none;flex:0 0 auto;min-width:40px;min-height:40px;margin:-8px -4px -8px -8px;display:flex;align-items:center;justify-content:center}
 .grip:active{cursor:grabbing;color:var(--cyan)}
 .card.dragging{position:relative;z-index:40;box-shadow:0 14px 30px -10px rgba(0,0,0,.6);border-color:var(--cyan);opacity:.96}
@@ -113,6 +113,8 @@ main{padding-bottom:16px}
 .tag.up{background:var(--cyan);color:#03141C}
 .tag.warn2{background:var(--red);color:#1B0300}
 .tag.pr{background:var(--green);color:#0F1A13}
+.exdone{flex:0 0 auto;width:24px;height:24px;border-radius:50%;border:1.5px solid var(--line);background:none;color:transparent;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
+.exdone.on{background:var(--green);border-color:var(--green);color:#0F1A13}
 .tag.done{background:var(--green);color:#03211A}
 
 /* dots */
@@ -505,6 +507,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 
 <script>
 /* ===================== storage ===================== */
+const BUILD='2026-08-11.1';
 const KEY='refinement:v1';
 let mem=null;
 async function load(){
@@ -752,7 +755,7 @@ function rowOf(exId,i){
   return d[exId][i];
 }
 function setVal(exId,i,f,v){rowOf(exId,i)[f]=v;persist();}
-function toggleWarm(exId,i){const row=rowOf(exId,i);row.warm=!row.warm;persist();}
+function toggleWarm(exId,i){const row=rowOf(exId,i);const turningOn=!row.warm;row.warm=turningOn;persist();return turningOn;}
 function toggleSet(x,i){
   const row=rowOf(x.id,i);
   if(row.on){row.on=false;persist();return false;}
@@ -769,6 +772,29 @@ function toggleSet(x,i){
   row.on=true;persist();return true;
 }
 function doneCount(x){const d=getDraft();return (d[x.id]||[]).filter((r,i)=>i<x.sets&&r&&r.on&&!r.warm).length;}
+function bulkMarkExercise(x,markOn){
+  let changed=0;
+  for(let i=0;i<x.sets;i++){
+    const row=rowOf(x.id,i);
+    if(markOn){
+      if(!row.on){
+        if(!row.w||!row.r){
+          const l=lastIn(x);
+          const lp=l&&l.sets[i]?l.sets[i]:(l?l.sets[l.sets.length-1]:null);
+          if(x.type==='cardio'){if(!row.r)row.r=String(lp?lp.r:x.lo);}
+          else{
+            const tw=targetWeight(x,i);
+            if(!row.w)row.w=tw?tidy(tw):'';
+            if(!row.r)row.r=String(shouldAddWeight(x)?x.lo:(lp&&lp.r?lp.r:x.lo));
+          }
+        }
+        row.on=true;changed++;
+      }
+    }else if(row.on){row.on=false;changed++;}
+  }
+  persist();
+  return changed;
+}
 function exComplete(x){return doneCount(x)>=x.sets;}
 function volume(){ // returns lb, excludes warm-up sets
   const d=getDraft();let v=0;
@@ -920,12 +946,20 @@ function startRest(sec){
   rest.on=true;rest.total=sec;rest.left=sec;paintRest();
   rest.t=setInterval(()=>{
     rest.left--;
-    if(rest.left<=0){clearInterval(rest.t);rest.on=false;paintRest();toast('Interval complete');buzz();return;}
+    if(rest.left<=0){clearInterval(rest.t);rest.on=false;paintRest();toast('Interval complete');buzz();notify('Rest interval complete','Back to it.');return;}
     paintRest();
   },1000);
 }
 function skipRest(){clearInterval(rest.t);rest.on=false;paintRest();}
 function buzz(){try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}
+function notify(title,body){
+  if(!S.notify)return;
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  try{
+    const n=new Notification(title,{body:body||'',icon:undefined,tag:'refine',silent:false});
+    setTimeout(()=>n.close(),8000);
+  }catch(e){}
+}
 function paintRest(){
   const b=$('#restbar');b.hidden=!rest.on;
   if(!rest.on){b.classList.remove('urgent');fitPad();return;}
@@ -1004,7 +1038,7 @@ function paintDays(){
     b.className='day'+(k===nowKey?' now':'')+(p.kind==='rest'?' rest':'')+(p.kind==='rest'?'':dayAccent(p.label));
     b.setAttribute('aria-selected',k===dayKey);
     b.innerHTML='<b>'+p.day+'</b>'+esc(p.label);
-    b.onclick=()=>{dayKey=k;forceEdit=false;render();};
+    b.onclick=()=>{dayKey=k;forceEdit=false;completeNotified=false;render();};
     box.appendChild(b);
   });
 }
@@ -1113,6 +1147,7 @@ function exCard(x,isBonus){
         <input class="exname" value="${esc(x.name)}" data-rename="${x.id}" aria-label="Exercise name">
         <button class="meta" data-collapse="${x.id}" aria-label="Collapse exercise">${x.type==='cardio'?x.lo+' min steady':x.sets+' × '+x.lo+(x.hi>x.lo?'–'+x.hi:'')+' reps'}${last?' · last '+esc(last.date.slice(5)):''}${kind==='adhoc'?' · off-script':''}<span class="collapseicon">${collapsed?'▸':'▾'}</span></button>
       </div>
+      <button class="exdone${complete?' on':''}" data-markdone="${x.id}" aria-label="${complete?'Mark exercise incomplete':'Mark exercise complete'}">${complete?'✓':''}</button>
       ${complete?'<span class="tag done">Refined</span>':(up?`<span class="tag up">Load +${tidy(loadStep(x))}</span>`:(dropping?'<span class="tag warn2">Reps slipping</span>':(isPR?'<span class="tag pr">★ PR</span>':'')))}
       <button class="kebab" data-actions="${x.id}" aria-label="More actions">⋯</button>
     </div>
@@ -1173,6 +1208,7 @@ function flashExerciseDone(x){
   if(card){card.classList.add('flash');setTimeout(()=>card.classList.remove('flash'),750);}
   blip(880);
   toast('Refined — '+x.name);
+  notify('Exercise complete',x.name+' is done. Move on to the next one.');
 }
 function scheduleAdvance(inp){
   clearTimeout(advanceTimers.get(inp));
@@ -1229,7 +1265,13 @@ function wireLog(){
     if(!wasComplete&&exComplete(x))flashExerciseDone(x);
   });
   $('#view').querySelectorAll('[data-warmtoggle]').forEach(b=>b.onclick=()=>{
-    toggleWarm(b.dataset.warmtoggle,+b.dataset.i);renderLog();});
+    const turnedOn=toggleWarm(b.dataset.warmtoggle,+b.dataset.i);
+    if(turnedOn){
+      const x=find(b.dataset.warmtoggle);
+      if(x){x.sets++;persist();toast("Set added — warm-ups don't count toward your working sets");}
+    }
+    renderLog();
+  });
   $('#view').querySelectorAll('[data-pickweight]').forEach(b=>b.onclick=()=>openWeightPicker(b.dataset.pickweight,+b.dataset.i));
   $('#view').querySelectorAll('[data-jump]').forEach(b=>b.onclick=()=>{
     const card=$('#view').querySelector(`[data-card="${b.dataset.jump}"]`);
@@ -1294,6 +1336,15 @@ function wireLog(){
   });
   $('#view').querySelectorAll('[data-collapse]').forEach(b=>b.onclick=()=>{
     toggleCollapse(b.dataset.collapse);renderLog();
+  });
+  $('#view').querySelectorAll('[data-markdone]').forEach(b=>b.onclick=()=>{
+    const x=find(b.dataset.markdone);
+    const wasComplete=exComplete(x);
+    bulkMarkExercise(x,!wasComplete);
+    const c=counts();
+    if(c.total>0&&c.done===c.total&&!forceEdit){render();return;}
+    renderLog();
+    if(!wasComplete&&exComplete(x))flashExerciseDone(x);
   });
   wireDrag();
   $('#view').querySelectorAll('[data-actions]').forEach(b=>b.onclick=()=>openActionsSheet(find(b.dataset.actions)));
@@ -1487,6 +1538,7 @@ const CREEDS=[
   'YOUR OUTIE EATS THE PROTEIN.<br>YOUR INNIE DID THE WORK.',
   'ATTENDANCE IS THE ONLY VARIABLE<br>YOU FULLY CONTROL. LOGGED.'
 ];
+let completeNotified=false;
 function renderComplete(){
   const v=volume();const {total}=counts();
   const creed=CREEDS[Math.floor(Math.random()*CREEDS.length)];
@@ -1501,8 +1553,12 @@ function renderComplete(){
     <div class="creed">${creed}</div>
     <button class="mini" id="celeedit">Reopen file</button>
   </div>`;
-  $('#celeedit').onclick=()=>{forceEdit=true;render();};
+  $('#celeedit').onclick=()=>{forceEdit=true;completeNotified=false;render();};
   updateDock();
+  if(!completeNotified){
+    completeNotified=true;
+    notify('Workout complete',plan().day+' — '+plan().label+' is fully filed.');
+  }
 }
 
 /* ===================== dock ===================== */
@@ -2137,6 +2193,20 @@ function renderConfig(){
     </div>
   </div>
 
+  <div class="cfg">
+    <h3>Notifications</h3>
+    <p>A system notification when rest ends, when an exercise finishes, and when the day is filed. Only fires reliably while this app is open on screen — iOS pauses everything the moment you lock your phone or switch apps, so it can't reach you in the background.</p>
+    <div class="seg">
+      <button data-notify="off" aria-pressed="${!S.notify}">Off</button>
+      <button data-notify="on" aria-pressed="${!!S.notify}">On</button>
+    </div>
+  </div>
+
+  <div class="cfg">
+    <h3>Build</h3>
+    <p class="mono" style="color:var(--faint);letter-spacing:.1em">${BUILD}</p>
+  </div>
+
   <div class="cfg danger">
     <h3>Danger zone</h3>
     <p>Export first if you want any of this back.</p>
@@ -2217,6 +2287,18 @@ function renderConfig(){
   $('#view').querySelectorAll('[data-ambient]').forEach(b=>b.onclick=()=>{
     S.ambient=b.dataset.ambient==='on';persist();renderConfig();
     if(S.ambient&&tab==='log')startAmbient();else stopAmbient();
+  });
+  $('#view').querySelectorAll('[data-notify]').forEach(b=>b.onclick=()=>{
+    const want=b.dataset.notify==='on';
+    if(want&&'Notification' in window&&Notification.permission!=='granted'){
+      Notification.requestPermission().then(p=>{
+        S.notify=p==='granted';persist();renderConfig();
+        toast(S.notify?'Notifications on':'Permission denied by iOS');
+      });
+      return;
+    }
+    S.notify=want;persist();renderConfig();
+    if(want)toast('Notifications on');
   });
   $('#wipe').onclick=()=>{
     if(!confirm('Delete every session, every setting, everything?'))return;
