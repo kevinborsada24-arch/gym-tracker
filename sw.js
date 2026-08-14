@@ -1,4 +1,4 @@
-const CACHE = 'refine-v7';
+const CACHE = 'refine-v9';
 
 self.addEventListener('install', e => {
   e.waitUntil(
