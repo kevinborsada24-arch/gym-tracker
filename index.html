@@ -519,7 +519,7 @@ h2.sec{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.26em
 
 <script>
 /* ===================== storage ===================== */
-const BUILD='2026-08-11.8';
+const BUILD='2026-08-11.9';
 const KEY='refinement:v1';
 let mem=null;
 async function load(){
@@ -961,15 +961,22 @@ function repTrend(name){
 
 
 /* ===================== rest timer ===================== */
-let rest={on:false,left:0,total:0,t:null};
+let rest={on:false,endAt:0,total:0,t:null};
 function startRest(sec){
   clearInterval(rest.t);
-  rest.on=true;rest.total=sec;rest.left=sec;paintRest();
-  rest.t=setInterval(()=>{
-    rest.left--;
-    if(rest.left<=0){clearInterval(rest.t);rest.on=false;paintRest();toast('Interval complete');buzz();notify('Rest interval complete','Back to it.');return;}
-    paintRest();
-  },1000);
+  rest.on=true;rest.total=sec;rest.endAt=Date.now()+sec*1000;
+  paintRest();
+  rest.t=setInterval(tickRest,1000);
+}
+function tickRest(){
+  if(!rest.on)return;
+  const left=Math.max(0,Math.round((rest.endAt-Date.now())/1000));
+  if(left<=0){
+    clearInterval(rest.t);rest.on=false;paintRest();
+    toast('Interval complete');buzz();notify('Rest interval complete','Back to it.');
+    return;
+  }
+  paintRest();
 }
 function skipRest(){clearInterval(rest.t);rest.on=false;paintRest();}
 function buzz(){try{navigator.vibrate&&navigator.vibrate([120,60,120]);}catch(e){}}
@@ -984,12 +991,16 @@ function notify(title,body){
 function paintRest(){
   const b=$('#restbar');b.hidden=!rest.on;
   if(!rest.on){b.classList.remove('urgent');fitPad();return;}
-  const m=Math.floor(rest.left/60),s=rest.left%60;
+  const left=Math.max(0,Math.round((rest.endAt-Date.now())/1000));
+  const m=Math.floor(left/60),s=left%60;
   $('#resttime').textContent=m+':'+String(s).padStart(2,'0');
-  $('#restfill').style.width=(rest.left/rest.total*100)+'%';
-  b.classList.toggle('urgent',rest.left<=10);
+  $('#restfill').style.width=(left/rest.total*100)+'%';
+  b.classList.toggle('urgent',left<=10);
   fitPad();
 }
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')tickRest();
+});
 $('#restskip').onclick=skipRest;
 let audioCtx=null;
 function blip(freq){
